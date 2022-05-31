@@ -1,0 +1,119 @@
+---
+title: Structural Equation Modeling
+author: P.05 -  Model Fit and Fit Indices
+date: 08.11.2021
+output:
+    pdf_document:
+        highlight: zenburn
+citation_package: biblatex
+bibliography: /Users/mihai/OneDrive/Library/Literature/Library.bib
+link-citations: yes
+csl: /Users/mihai/OneDrive/Library/Literature/Zotero/styles/apa.csl
+header-includes:
+  - \usepackage{leading}
+  - \usepackage{subcaption}
+  - \leading{16pt}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Reduce code chunk and output size.
+# See: https://stackoverflow.com/a/46526740/5252007.
+def.chunk.hook  <- knitr::knit_hooks$get("chunk")
+knitr::knit_hooks$set(chunk = function(x, options) {
+    x <- def.chunk.hook(x, options)
+    ifelse(options$size != "normalsize", paste0("\n \\", options$size, "\n\n", x, "\n\n \\normalsize"), x)
+})
+
+# Store the path.
+path <- "/Users/mihai/OneDrive/School/Teaching/Structural Equation Modeling - ReMa - Tilburg/2021/Lecture 05 - Model Fit and Fit Indices/Practical"
+
+# Set the path.
+setwd(path)
+```
+
+---
+
+# Lab Description
+
+For this practical you will need the following package: `lavaan` and `semPlot`.
+
+You can install and load this package using the following code:
+
+```{r size="footnotesize", eval=FALSE}
+# Install packages.
+install.packages(c("lavaan", "semPlot"))
+
+# Load the packages.
+library(lavaan)
+library(semPlot)
+```
+
+## Exercise 1
+
+a. Import the dataset `ELEMM1.csv` that is available in the course folder for
+   *Lecture 4* on Canvas.
+
+b. In *Practical 4*, you estimated the model in Figure 1 (see below), using the
+   Satorra-Bentler estimator and obtained a value for the *MFTS*.
+   - Re-estimate this model and now request that the modification indices are
+     also printed in the output.
+   - Evaluate the fit of this model using fit indices. *Tip: check the arguments
+     `fit.measures` and `modindices` in `lavaan`. Also check the functions
+     `fitmeasures()` and `modificationIndices()` in `lavaan`.*
+
+c. Do you see possibilities to improve the fit of the model? Which one(s)? What
+   would be your strategy for improving the fit of this model?
+
+d. Implement the model improvements and test if the improved model is
+   significant using the Likelihood Ratio Test (LRT).
+   - *Note: strictly speaking, the standard LRT is not correct when the Robust
+     Maximum Likelihood is used because the scaled $\chi^2$ values are not
+     $\chi^2$ distributed. However, for the sake of the exercise we will proceed
+     this way despite of this limitation.*
+
+<!-- Figure 1 !-->
+![Hypothesized CFA model of factorial structure for the *Maslach Burnout Inventory* (MBI).](./assets/figure_1.png){width=80%}
+
+<!-- Page break -->
+\newpage
+
+## Exercise 2
+
+a. Estimate and visualize each of the following four models in Figure 2 using
+   the dataset from the previous exercise.
+
+b. What do they have in common?
+
+<!-- Figure 2 !-->
+\begin{figure}[ht]
+  \begin{subfigure}[b]{0.5\linewidth}
+    \centering
+    \includegraphics[width=0.95\linewidth]{./assets/figure_2a}
+    \caption{First model.}
+    \label{fig2:a}
+    \vspace{4ex}
+  \end{subfigure}%%
+  \begin{subfigure}[b]{0.5\linewidth}
+    \centering
+    \includegraphics[width=0.95\linewidth]{./assets/figure_2b}
+    \caption{Second model.}
+    \label{fig2:b}
+    \vspace{4ex}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.5\linewidth}
+    \centering
+    \includegraphics[width=0.95\linewidth]{./assets/figure_2c}
+    \caption{Third model.}
+    \label{fig2:c}
+  \end{subfigure}%%
+  \begin{subfigure}[b]{0.5\linewidth}
+    \centering
+    \includegraphics[width=0.95\linewidth]{./assets/figure_2d}
+    \caption{Fourth model.}
+    \label{fig2:d}
+  \end{subfigure}
+  \caption{Four models that have something in common.}
+  \label{fig2}
+\end{figure}

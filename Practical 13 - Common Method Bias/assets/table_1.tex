@@ -1,0 +1,103 @@
+% Regular table.
+\begin{table}[!ht]
+    \centering
+    \begin{tabular}{llp{11cm}}
+        \hline \textbf{Dimensions}     & \textbf{Variable} & \textbf{Item text} \\ \hline
+
+        Artistic value          & \texttt{artval1}   & The concert/ show had artistic value. \\
+                                & \texttt{artval2}   & The concert/ show was a form of art. \\
+                                & \texttt{artval3}   & The concert/ show was of a high artistic level. \\
+        \hline
+        Beauty                  & \texttt{beauty1}   & The concert/ how was beautiful. \\
+                                & \texttt{beauty2}   & I enjoyed the concert/ show. \\
+                                & \texttt{beauty3}   & The concert/ how was a beautiful experience. \\
+        \hline
+        Cultural relaxation     & \texttt{relax1}    & Through my visit to the concert/ show I had a nice evening out. \\
+                                & \texttt{relax2}    & Through my visit to the concert/ show I had the feeling I was away from it all. \\
+                                & \texttt{relax3}    & Through my visit to the concert/ show I have been able to relax. \\
+        \hline
+        Cultural stimulation    & \texttt{stim1}     & Through my visit to the concert/ show I got food for thought. \\
+                                & \texttt{stim2}     & Through my visit to the concert/ show I felt intellectually stimulated. \\
+                                & \texttt{stim3}     & Through my visit to the concert/ show I have been challenged to think about certain things. \\
+        \hline
+        Cultural transmission   & \texttt{trans1}    & Through my visit to the concert/ show I transmitted my cultural interests to important others (children, grandchildren, family, friends.) \\
+                                & \texttt{trans2}    & Through my visit to the concert/ show I have shared my cultural interests with important others (children, grandchildren, family, friends.) \\
+                                & \texttt{trans3}    & Through my visit to the concert/ show I have brought people that are important to me into contact with this form of art. \\
+        \hline
+        Social attraction       & \texttt{attr1}     & During my visit to the concert/ show I was with people that like the same things as I do. \\
+                                & \texttt{attr2}     & During my visit to the concert/ show I had the feeling I was with like-minded people. \\
+                                & \texttt{attr3}     & During my visit to the concert/ show I was with people that have similar interests as me. \\
+        \hline
+        Social bonding          & \texttt{bond1}     & My visit to the concert/ show was a nice opportunity to be together with family and friends. \\
+                                & \texttt{bond2}     & Through my visit to the concert/ show I had a nice evening out with family or friends. \\
+                                & \texttt{bond3}     & Through my visit to the concert/ show I have been able to strengthen the bonds with family or friends. \\
+        \hline
+        Social distinction      & \texttt{dist1}     & My visit to the concert/ show is a good topic for conversation at drinks or other social activities. \\
+                                & \texttt{dist2}     & I like to tell other people how I experienced the concert/ show. \\
+                                & \texttt{dist3}     & People in my social environment appreciate a visit to this concert/ show. \\
+        \hline
+        Social duty             & \texttt{duty1}     & Through my visit to the concert/ show I spent a pleasant time with colleagues or business relations. \\
+                                & \texttt{duty2}     & Through my visit to the concert/ show I met interesting people from my professional network. \\
+                                & \texttt{duty3}     & Through my visit to the concert/ show I strengthened my professional network. \\
+        \hline
+    \end{tabular}
+    \caption{Latent constructs and manifest variables in \texttt{data.sav}.}
+    \label{tab:1}
+\end{table}
+
+
+% Or as a long table (i.e., using package 'longtable').
+\begin{longtable}{llp{11cm}}
+    \caption{Latent constructs and manifest variables in \texttt{data.sav}.} \\
+    \label{tab:1} \\
+
+    \hline \multicolumn{1}{l}{\textbf{Dimensions}} & \multicolumn{1}{l}{\textbf{Variable}} & \multicolumn{1}{l}{\textbf{Item text}} \\ \hline
+    \endfirsthead
+
+    \multicolumn{3}{r}%
+    {{\bfseries \tablename\ \thetable{} -- continued}} \\
+    \hline \multicolumn{1}{l}{\textbf{Dimensions}} & \multicolumn{1}{l}{\textbf{Variable}} & \multicolumn{1}{l}{\textbf{Item text}} \\ \hline
+    \endhead
+
+    \hline \multicolumn{3}{r}{{Continued on next page}}
+    \endfoot
+
+    \hline
+    \endlastfoot
+
+    Artistic value          & \texttt{artval1}   & The concert/ show had artistic value. \\
+                            & \texttt{artval2}   & The concert/ show was a form of art. \\
+                            & \texttt{artval3}   & The concert/ show was of a high artistic level. \\
+    \hline
+    Beauty                  & \texttt{beauty1}   & The concert/ how was beautiful. \\
+                            & \texttt{beauty2}   & I enjoyed the concert/ show. \\
+                            & \texttt{beauty3}   & The concert/ how was a beautiful experience. \\
+    \hline
+    Cultural relaxation     & \texttt{relax1}    & Through my visit to the concert/ show I had a nice evening out. \\
+                            & \texttt{relax2}    & Through my visit to the concert/ show I had the feeling I was away from it all. \\
+                            & \texttt{relax3}    & Through my visit to the concert/ show I have been able to relax. \\
+    \hline
+    Cultural stimulation    & \texttt{stim1}     & Through my visit to the concert/ show I got food for thought. \\
+                            & \texttt{stim2}     & Through my visit to the concert/ show I felt intellectually stimulated. \\
+                            & \texttt{stim3}     & Through my visit to the concert/ show I have been challenged to think about certain things. \\
+    \hline
+    Cultural transmission   & \texttt{trans1}    & Through my visit to the concert/ show I transmitted my cultural interests to important others (children, grandchildren, family, friends.) \\
+                            & \texttt{trans2}    & Through my visit to the concert/ show I have shared my cultural interests with important others (children, grandchildren, family, friends.) \\
+                            & \texttt{trans3}    & Through my visit to the concert/ show I have brought people that are important to me into contact with this form of art. \\
+    \hline
+    Social attraction       & \texttt{attr1}     & During my visit to the concert/ show I was with people that like the same things as I do. \\
+                            & \texttt{attr2}     & During my visit to the concert/ show I had the feeling I was with like-minded people. \\
+                            & \texttt{attr3}     & During my visit to the concert/ show I was with people that have similar interests as me. \\
+    \hline
+    Social bonding          & \texttt{bond1}     & My visit to the concert/ show was a nice opportunity to be together with family and friends. \\
+                            & \texttt{bond2}     & Through my visit to the concert/ show I had a nice evening out with family or friends. \\
+                            & \texttt{bond3}     & Through my visit to the concert/ show I have been able to strengthen the bonds with family or friends. \\
+    \hline
+    Social distinction      & \texttt{dist1}     & My visit to the concert/ show is a good topic for conversation at drinks or other social activities. \\
+                            & \texttt{dist2}     & I like to tell other people how I experienced the concert/ show. \\
+                            & \texttt{dist3}     & People in my social environment appreciate a visit to this concert/ show. \\
+    \hline
+    Social duty             & \texttt{duty1}     & Through my visit to the concert/ show I spent a pleasant time with colleagues or business relations. \\
+                            & \texttt{duty2}     & Through my visit to the concert/ show I met interesting people from my professional network. \\
+                            & \texttt{duty3}     & Through my visit to the concert/ show I strengthened my professional network. \\
+\end{longtable}

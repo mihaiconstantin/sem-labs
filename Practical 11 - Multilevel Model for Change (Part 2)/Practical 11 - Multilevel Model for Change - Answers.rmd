@@ -1,0 +1,769 @@
+---
+title: P.11 - Multilevel Model for Change
+author: Mihai A. Constantin
+date: 29.11.2021
+output:
+    pdf_document:
+        highlight: zenburn
+citation_package: biblatex
+bibliography: /Users/mihai/OneDrive/Library/Literature/Library.bib
+link-citations: yes
+csl: /Users/mihai/OneDrive/Library/Literature/Zotero/styles/apa.csl
+header-includes:
+  - \usepackage{leading}
+  - \usepackage{subcaption}
+  - \usepackage{csquotes}
+  - \usepackage{bm}
+  - \usepackage{amsmath}
+  - \usepackage{amssymb}
+  - \usepackage{hyperref}
+  - \leading{16pt}
+  - \newcommand{\mat}[1]{\bm{#1}}
+  - \renewcommand{\vec}[1]{\bm{#1}}
+  - \hypersetup{colorlinks, linkcolor={red!50!black}, citecolor={blue!50!black}, urlcolor={blue!80!black}}
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Output width.
+options(width = 100)
+
+# Reduce code chunk and output size.
+# See: https://stackoverflow.com/a/46526740/5252007.
+def.chunk.hook  <- knitr::knit_hooks$get("chunk")
+knitr::knit_hooks$set(chunk = function(x, options) {
+    x <- def.chunk.hook(x, options)
+    ifelse(options$size != "normalsize", paste0("\n \\", options$size, "\n\n", x, "\n\n \\normalsize"), x)
+})
+
+# Store the path.
+path <- "/Users/mihai/OneDrive/School/Teaching/Structural Equation Modeling - ReMa - Tilburg/2021/Lecture 11 - Multilevel Model for Change (Part 2)/Practical"
+
+# Set the path.
+setwd(path)
+
+# Load the data.
+data <- read.csv("./data/alcohol.csv")
+
+# Load libraries.
+library(lme4)
+library(ggplot2)
+library(psych)
+library(performance)
+library(lmerTest)
+```
+
+---
+
+# Lab Description
+
+In this assignment you are going to estimate several multilevel models that
+reproduce the findings discussed in *lecture 11*. Compare your results with the
+findings reported in the lecture slides. Try to use the lecture slides as a
+guide through the `R` output.
+
+For this practical you will need the following packages: `lme4`, `ggplot2`, and
+`psych`. You can install and load these packages using the following code:
+
+```{r size="footnotesize", eval=FALSE}
+# Install packages.
+install.packages(c("lme4", "ggplot2", "psych"))
+
+# Load the packages.
+library(lme4)
+library(ggplot2)
+library(psych)
+```
+
+## Questions
+
+Start by loading the `alcohol.csv` data in `R`, then compute basic descriptive
+statistics. The data is available on Canvas in the module corresponding to the
+current lab session.
+
+Load the data.
+
+```{r size="footnotesize", eval=FALSE}
+# For example.
+setwd("/Users/mihai/Downloads")
+
+# Load data.
+data <- read.csv("alcohol.csv")
+
+# Inspect the data.
+View(data)
+```
+
+Check the structure of the data.
+
+```{r size="footnotesize"}
+# List variables.
+str(data)
+```
+
+Compute basic descriptive statistics.
+
+```{r size="footnotesize"}
+# Describe the data using `psych`.
+describe(data[c("alcuse", "age_14", "coa", "peer")])
+```
+
+We can also compute the descriptive statistics per individual (i.e., by `id`).
+In this case, we use a formula syntax, where `~` denotes *describe what is on
+the left of `~` by the variable on the right*.
+
+```{r size="footnotesize", eval=FALSE}
+# Describe by group, in this case the `id` variable.
+describe(alcuse + age_14 + coa + peer ~ id, data = data)
+```
+
+Which would result in the following (i.e., trimmed) output:
+
+```{r size="footnotesize", eval=FALSE}
+# id: 1
+#        vars n mean   sd median trimmed  mad  min  max range  skew kurtosis   se
+# alcuse    1 3 1.91 0.15   2.00    1.91 0.00 1.73 2.00  0.27 -0.38    -2.33 0.09
+# age_14    2 3 1.00 1.00   1.00    1.00 1.48 0.00 2.00  2.00  0.00    -2.33 0.58
+# coa       3 3 1.00 0.00   1.00    1.00 0.00 1.00 1.00  0.00   NaN      NaN 0.00
+# peer      4 3 1.26 0.00   1.26    1.26 0.00 1.26 1.26  0.00   NaN      NaN 0.00
+# ---------------------------------------------------------------------------
+# .
+# .
+# .
+# ---------------------------------------------------------------------------
+# id: 82
+#        vars n mean   sd median trimmed  mad  min  max range  skew kurtosis   se
+# alcuse    1 3 0.80 0.73   1.00    0.80 0.61 0.00 1.41  1.41 -0.25    -2.33 0.42
+# age_14    2 3 1.00 1.00   1.00    1.00 1.48 0.00 2.00  2.00  0.00    -2.33 0.58
+# coa       3 3 0.00 0.00   0.00    0.00 0.00 0.00 0.00  0.00   NaN      NaN 0.00
+# peer      4 3 2.19 0.00   2.19    2.19 0.00 2.19 2.19  0.00   NaN      NaN 0.00
+```
+
+Now, we extract only the variables we are interested in and create the factors
+accordingly.
+
+```{r size="footnotesize"}
+# Vector of variables we are interested in.
+variables <- c("id", "age", "coa", "age_14", "peer", "cpeer", "alcuse")
+
+# Subset the data.
+data <- data[, variables]
+
+# Inspect the first few rows of the data.
+head(data)
+
+# Create factors for categorical variables.
+data$id <- factor(data$id)
+data$age <- factor(data$age, levels = c(14, 15, 16), labels = c(14, 15, 16))
+data$coa <- factor(data$coa, levels = c(0, 1), labels = c("non-alcoholic parent", "alcoholic parent"))
+
+# Create a mean split variable for the peer alcohol consumption variable.
+data$peer_split <- factor(data$peer <= mean(data$peer), levels = c(TRUE, FALSE), labels = c("low", "high"))
+
+# Show the structure of the data.
+str(data)
+```
+
+It is always a good idea to visualize the data. We can start by plotting the
+aggregated data and the corresponding regression line.
+
+```{r size="footnotesize", dev="pdf", fig.width=7, fig.height=7, out.width="270px", fig.align="center"}
+# Create ggplot.
+ggplot(data, aes(x = age, y = alcuse)) +
+    geom_jitter(
+        width = 0.2
+    ) +
+    geom_smooth(
+        mapping = aes(x = as.numeric(age)),
+        method = lm,
+        formula = y ~ x,
+        se = FALSE
+    ) +
+    theme_bw() +
+    theme(
+        legend.position = "top"
+    ) +
+    labs(
+        title = "Alcohol Use vs. Age",
+        subtitle = "(aggregated)",
+        x = "Age",
+        y = "Alcohol Use"
+    )
+```
+
+We can also fit a separate linear regression for each group (e.g., alcoholic
+parent vs. non-alcoholic parent, or low peer consumption vs. high peer
+consumption). We start with the `coa` variable.
+
+```{r size="footnotesize", dev="pdf", fig.width=7, fig.height=7, out.width="270px", fig.align="center"}
+# Create ggplot.
+ggplot(data, aes(x = age, y = alcuse, color = coa)) +
+    geom_jitter(
+        width = 0.2
+    ) +
+    geom_smooth(
+        mapping = aes(x = as.numeric(age)),
+        method = lm,
+        formula = y ~ x,
+        se = FALSE
+    ) +
+    theme_bw() +
+    theme(
+        legend.position = "top"
+    ) +
+    labs(
+        title = "Alcohol Use vs. Age",
+        subtitle = "(aggregated and colored by presence of an alcoholic parent)",
+        x = "Age",
+        y = "Alcohol Use"
+    )
+```
+
+And now we do the same for the peer consumption, using the `peer_split` variable
+we created that splits the peer alcohol consumption measure into *low* (i.e.,
+below the mean) and *hight* (i.e., above the mean).
+
+```{r size="footnotesize", dev="pdf", fig.width=7, fig.height=7, out.width="270px", fig.align="center"}
+# Create ggplot.
+ggplot(data, aes(x = age, y = alcuse, color = peer_split)) +
+    geom_jitter(
+        width = 0.2
+    ) +
+    geom_smooth(
+        mapping = aes(x = as.numeric(age)),
+        method = lm,
+        formula = y ~ x,
+        se = FALSE
+    ) +
+    theme_bw() +
+    theme(
+        legend.position = "top"
+    ) +
+    labs(
+        title = "Alcohol Use vs. Age",
+        subtitle = "(aggregated and colored by peer alcohol consumption)",
+        x = "Age",
+        y = "Alcohol Use"
+    )
+```
+
+Or, we can view the regression lines for the aggregated data, both by `coa` and
+`peer_split`, where the line color indicates the presence or absence of a
+non-alcoholic parent, and the line type indicates the peer alcohol consumption.
+
+```{r size="footnotesize", dev="pdf", fig.width=7, fig.height=7, out.width="270px", fig.align="center"}
+# Create ggplot.
+ggplot(data, aes(x = age, y = alcuse, color = coa, linetype = peer_split)) +
+    geom_jitter(
+        width = 0.1
+    ) +
+    geom_smooth(
+        mapping = aes(x = as.numeric(age)),
+        method = lm,
+        formula = y ~ x,
+        se = FALSE
+    ) +
+    theme_bw() +
+    theme(
+        legend.position = "top"
+    ) +
+    labs(
+        title = "Alcohol Use vs. Age",
+        subtitle = "(aggregated)",
+        x = "Age",
+        y = "Alcohol Use"
+    )
+```
+
+Another way is to put each variable int its own quadrant using the function
+`facet_wrap`.
+
+```{r size="footnotesize", dev="pdf", fig.width=7, fig.height=7, out.width="270px", fig.align="center"}
+# Create ggplot.
+ggplot(data, aes(x = age, y = alcuse)) +
+    geom_jitter(
+        width = 0.2
+    ) +
+    geom_smooth(
+        mapping = aes(x = as.numeric(age)),
+        method = lm,
+        formula = y ~ x,
+        se = FALSE
+    ) +
+    facet_wrap(
+        facets = coa ~ peer_split
+    ) +
+    theme_bw() +
+    theme(
+        legend.position = "top"
+    ) +
+    labs(
+        title = "Alcohol Use vs. Age",
+        subtitle = "(aggregated)",
+        x = "Age",
+        y = "Alcohol Use"
+    )
+```
+
+However, since we have nested data with multiple measurements per participant
+(i.e., three measurements, at ages 14, 15 and 16), aggregating these
+measurements it is not a good idea because we violate the assumption of
+independent observations. If we take a look at the first six rows in our data
+
+```{r size="footnotesize", echo=FALSE}
+# Print the head of the data.
+head(data)
+```
+
+we see that the first three observations belong to the first participant (i.e.,
+$id = 1$), and the other three belong to the second participant (i.e., $id =
+2$). This is what we call nested data (e.g., some measurements belong to a
+participant, while others to another participant and so on). By fitting a linear
+model like we did above, we do not respect the nested structure of the data and,
+in fact, we aggregated over the entire rows. This means that we end up treating
+each row as an independent observation (e.g., row number one is independent of
+row number two), when this is not the case (e.g., row number one is *not
+independent* of row number two because both of these observations were produced
+by the same individual, i.e., the person with $id = 1$). Therefore, we are
+better of taking into account such dependencies in the data and allow each
+individual to have his or her own regression line. Let us see how we can
+illustrate this idea graphically.
+
+```{r size="footnotesize", dev="pdf", fig.width=11, fig.height=12, out.width="400px", fig.align="center"}
+# Create ggplot.
+ggplot(data, aes(x = age, y = alcuse, color = coa, linetype = peer_split)) +
+    geom_point(
+        color = "#000000"
+    ) +
+    geom_smooth(
+        mapping = aes(x = as.numeric(age)),
+        method = lm,
+        formula = y ~ x,
+        se = FALSE
+    ) +
+    facet_wrap(
+        facets = ~ id
+    ) +
+    theme_bw() +
+    theme(
+        legend.position = "top"
+    ) +
+    labs(
+        title = "Alcohol Use vs. Age",
+        subtitle = "(for each individual colored by alcoholic parent and line type by peer consumption)",
+        x = "Age",
+        y = "Alcohol Use"
+    )
+```
+
+Or, more easier to see.
+
+```{r size="footnotesize", dev="pdf", fig.width=7, fig.height=7, out.width="270px", fig.align="center"}
+# Create ggplot.
+ggplot(data, aes(x = age, y = alcuse, group = id)) +
+    geom_jitter(
+        width = 0.1
+    ) +
+    geom_smooth(
+        mapping = aes(x = as.numeric(age)),
+        method = lm,
+        formula = y ~ x,
+        se = FALSE
+    ) +
+    facet_wrap(
+        facets = coa ~ peer_split
+    ) +
+    theme_bw() +
+    theme(
+        legend.position = "none"
+    ) +
+    labs(
+        title = "Alcohol Use vs. Age",
+        subtitle = "(for each individual)",
+        x = "Age",
+        y = "Alcohol Use"
+    )
+```
+
+Unsurprisingly, we see that there is quite some variability both in the
+intercepts (i.e., the initial status of alcohol consumption) and the slopes
+(i.e., the yearly rate of alcohol consumption). So, with this in mind, we can
+now go on a fit some multi-level models.
+
+You can check the documentation for the `lme4` package to find out how random
+intercepts and slopes are indicated in the model syntax. Or, if you want to find
+out more, can also check the incredibly [popular paper for the `lme4`
+package](https://www.jstatsoft.org/article/view/v067i01) (i.e., 42713 citations
+to date). In *Figure 1* you can see an overview of the syntax of `lme4`. In a
+nutshell, we specify the models using the `R` formula interface, where what is
+left of the `~` symbol represents the dependent variable, and what is on the
+right represents independent variables, iteraction terms and so on. For example,
+if we want to fit a simple linear regression with only an intercept, we can use
+`lm(y ~ 1)`, where `y ~ 1` can be read as `y` is predicted by its intercept. If
+we want to add a predictor `x`, then the formula becomes `y ~ 1 + x`, where now
+`y` is predicted by its intercept and `x`. We can simplify the above formula to
+`y ~ x`, and, the `lm`, or the corresponding function of `lme4` we use, will
+still estimate the intercept for us. When using `lme4` to specify random
+effects, we specify such effects in between brackets (i.e., `(` and `)`)
+together with a pipe operator (i.e., `|`). The pipe operator `|` follows a
+similar logic to the tilde `~` operator. What is on the left of the `|` operator
+it is allowed to vary for the levels of (i.e., by) what is on the right. For
+example, the following complete formula `y ~ x + (1 | id)` means that `y` is
+predicted by `x` and that the intercept is allowed to vary by `id` (i.e., each
+individual gets his or her own initial status).
+
+![Common syntax for the `R` packge `lme4` reproduced from @batesFittingLinearMixedEffects2015 [p. 7].](./assets/figure_1.png){width=100%}
+
+For this exercise, and the rest of the exercises, we are interested in the
+`lmer` function of `lme4`. However, by default, the `lme4` package does not
+provide $p$-values. However, we can rely on the `lmerTest` package that will
+\enquote{mask} the `lmer` function of `lme4` and also include $p$-values for the
+model parameters in the output. In other words, the `lmerTest` package provides
+functions that are identical to those of `lme4` (e.g., `lmer`) in terms of input
+(i.e., arguments ), but also include $p$-values in the output. As far as we are
+concerned, we work with the `lmerTest::lmer` as if we are working with the
+`lme4::lmer`. Therefore, for the rest of the lab, we are going to proceed with
+package `lmerTest` loaded.
+
+```{r size="footnotesize", eval=FALSE}
+# Install packages.
+install.packages("lmerTest")
+
+# Load package.
+library(lmerTest)
+```
+
+1. Estimate the the *unconditional means model* (i.e., as `model_a`). In this
+   model, the variable `alcuse` (i.e., alcohol use) is the dependent variable,
+   which is only predicted by the intercept.
+
+    - *Tip*. Recall how intercepts are modeled in simple linear regression, and
+      how to allow for the intercepts to vary across individuals.
+
+The model we are about to fit is what we call the **intercept-only** model. In
+equations, the model takes the follow form:
+
+*Level 1*:
+$$
+\text{alcuse}_{ij} = \pi_{0i} + \varepsilon_{ij}
+$$
+$$
+\varepsilon_{ij} \sim \mathcal{N}(0, \sigma_{\varepsilon}^{2})
+$$
+
+*Level 2:*
+$$
+\pi_{0i} = \gamma_{00} + \zeta_{0i}
+$$
+$$
+\zeta_{0i} \sim \mathcal{N}(0, \sigma_{0}^{2})
+$$
+
+We can run the model using the code below. Note that we use the `REML = FALSE`
+argument to tell `lme4` to use the maximum-likelihood (ML) approach (i.e., the
+same estimation method used to obtain the results in the lecture slides).
+
+```{r size="footnotesize"}
+# Model syntax.
+model_a <- lmer(alcuse ~ 1 + (1 | id), data = data, REML = FALSE)
+
+# Or simpler.
+model_a <- lmer(alcuse ~ (1 | id), data = data, REML = FALSE)
+
+# Model summary.
+summary(model_a)
+```
+
+Overall, there two main sections in the output that we want to look at. Starting
+with the `Fixed effects` section, we observe that the grand mean across
+individuals and measurement occasions in $0.92195$. This parameter corresponds
+to the $\gamma_{00}$ parameter in the lecture slides (i.e., or the initial
+status). Next, we take a look at the `Random effects` section where we see two
+parameters:
+
+- the `intercept` parameter (i.e., $\sigma^{2}_{0}$) represents our
+  between-person variance component. In other words, this parameter describes
+  the variability in the individual intercepts, i.e., $\sigma_{0}^{2} = 0.5639$.
+
+- the `residual` parameter (i.e., $\sigma_{\varepsilon}^{2}$) represents our
+  within-person variance component. In other words, this parameter describes how
+  much variance is unexplained, after we allowed for the intercepts to vary,
+  i.e., $\sigma_{\varepsilon}^{2} = 0.5617$.
+
+We can extract the coefficients (i.e., in this case only the individual
+intercepts, or the person-specific means) estimated for each individual via the
+`coef` function in `R`.
+
+```{r size="footnotesize", eval=FALSE}
+# Extract the coefficients for each person.
+coef(model_a)
+```
+
+We can also compute the $R^2$ value using the `mitml` package, but make sure you
+first read the relevant papers to understand how exactly it is computed. Thanks
+to Stella for mentioning the package!
+
+```{r size="footnotesize", eval=FALSE}
+# Install packages.
+install.packages("mitml")
+
+# Load package.
+library(mitml)
+
+# R^2 values.
+multilevelR2(model_a, print = c("RB2"))
+```
+
+If you want to see an APA-style table for your model parameters, you can use the
+package`sjPlot`:
+
+```{r size="footnotesize", eval=FALSE}
+# Install package.
+install.package("sjPlot")
+
+# Load package.
+library(sjPlot)
+
+# Create APA-style table.
+tab_model(model_a)
+```
+
+2. Calculate the *interclass correlation coefficient* (ICC) from `model_a`.
+
+```{r size="footnotesize"}
+# Print the random effects (i.e., standard deviations).
+VarCorr(model_a)
+
+# Print the random effects (i.e., variances).
+print(VarCorr(model_a), comp = "Variance")
+
+# The ICC is the proportion of between-persons variance.
+0.56386 / (0.56386 + 0.56175)
+```
+
+We obtain the same if we use the function `icc` in the `R` package
+`performance`, after we install and load it.
+
+```{r size="footnotesize", eval=FALSE}
+# Install package.
+install.package("performance")
+
+# Load package.
+library(performance)
+```
+
+Compute the ICC via `performance::icc`.
+
+```{r size="footnotesize"}
+# Compute ICC.
+icc(model_a)
+```
+
+You probably noticed that I am referencing quite a number of package. Since
+`lme4` is incredibly popular, many authors have written handy packages and
+wrappers around `lme4` to facilitate multi-level analysis.
+
+3. Estimate the *unconditional growth model* (i.e., as `model_b`). In this
+   model, allow for random variation in the `age_14` variable, which captures
+   the effect of time.
+
+    - *Note.* The variable `age_14` by subtracting $14$ from the variable `age`.
+      Therefore, variable `age_14` holds $0$ for age $14$, $1$ for age $15$, and
+      $2$ for age $16$.
+
+In addition to the previous model, we now include another predictor (i.e.,
+`age_14`) that accounts for the change over time. Furthermore, now we allow both
+the intercept (i.e., $\pi_{0i}$) and the slope for the time predictor (i.e.,
+$\pi_{1i}$) to vary by individual. Substantively, this means that each
+individual gets his or her own initial status and alcohol consumption rate of
+change over time. In equations, the model takes the follow form:
+
+*Level 1*:
+$$
+\text{alcuse}_{ij} = \pi_{0i} + \pi_{1i} \times \text{age\_14}_{ij} + \varepsilon_{ij}
+$$
+$$
+\varepsilon_{ij} \sim \mathcal{N}(0, \sigma_{\varepsilon}^{2})
+$$
+
+*Level 2*:
+$$
+\pi_{0i} = \gamma_{00} + \zeta_{0i}
+$$
+$$
+\pi_{1i} = \gamma_{10} + \zeta_{1i}
+$$
+$$
+\left[
+    \begin{array}{l}
+        \zeta_{0i} \\
+        \zeta_{1i}
+    \end{array}
+\right] \sim \mathcal{N}\left(
+    \left[
+        \begin{array}{l}
+            0 \\
+            0
+        \end{array}
+    \right],
+    \left[
+        \begin{array}{cc}
+            \sigma_{0}^{2} & \sigma_{01} \\
+            \sigma_{10} & \sigma_{1}^{2}
+        \end{array}
+    \right]
+\right)
+$$
+
+*The combined model* (i.e., levels one and two put together):
+$$
+\text{alcuse}_{ij} = \gamma_{00} + \gamma_{10} \times \text{age\_14}_{ij} + \left(\zeta_{0i} + \zeta_{1i} \times \text{age\_14}_{ij} + \varepsilon_{ij}\right)
+$$
+
+We can drop the intercept from the model syntax (i.e., the $1$) and `lme4` will
+still estimate it for us by default. It is only really necessary to mention it,
+when you explicitly want an intercept-only model.
+
+```{r size="footnotesize"}
+# Model syntax.
+model_b <- lmer(alcuse ~ age_14 + (age_14 | id), data = data, REML = FALSE)
+
+# Model summary.
+summary(model_b)
+```
+
+Now, in the output for our model we have values for the following parameters:
+
+- **Fixed effects**:
+    - `intercept` (i.e., $\gamma_{00}$) equal to $0.65130$, which represents the
+      average initial status across all participants
+    - `age_14`(i.e., $\gamma_{10}$) equal to $0.27065$, which represents the
+      average true rate of change across all participants
+- **Random effects**:
+    - `intercept` (i.e., $\zeta_{0i}$) equal to $0.6244$, which represents the
+      variance in the individual intercepts (i.e., in the initial alcohol
+      consumption)
+    - `age_14` (i.e., the $\zeta_{1i}$) equal to $0.1512$, which represents the
+      variance in the individual slopes (i.e., in the rate of change in alcohol
+      consumption)
+    - `residual` (i.e., $\sigma_{\varepsilon}^{2}$) equal to $0.3373$, which
+      represents the unexplained within-person variance
+
+4. Estimate another model (i.e., `model_c`), where the variable `coa` predicts
+   both the initial status and the rate of change in variable `alcuse`.
+
+    - *Note.* The variable `coa` refers to whether the children belongs to a
+      family with an alcoholic parent, i.e., coded as $1$, and $0$ otherwise.
+
+We follow the same logic as above, but this time, we an interaction term between
+`coa` and `age_14`.
+
+```{r size="footnotesize"}
+# Model syntax.
+model_c <- lmer(alcuse ~ coa * age_14 + (age_14 | id), data = data, REML = FALSE)
+
+# Model summary.
+summary(model_c)
+```
+
+5. Calculate the proportional reduction in variance in the initial status and
+   the rate of change due to including the `coa` predictor in the model.
+
+```{r size="footnotesize"}
+# Variances for both models.
+print(VarCorr(model_b), comp = "Variance")
+print(VarCorr(model_c), comp = "Variance")
+
+# Initial status.
+(0.62436 - 0.48758) / 0.62436
+
+# Rate of change.
+(0.15120 - 0.15060) / 0.15120
+```
+
+We see that the reduction in variance is about $22%$ for the intercepts, but
+close to $0%$ for the slopes.
+
+6. Estimate another (i.e., `model_d`) in which the variable `peer` is added to
+   `model_c` to explain the initial status and the rate of change in `alcuse`.
+
+    - *Note.* The variable `peer` is a measure of peer alcohol use.
+
+```{r size="footnotesize"}
+# Model syntax.
+model_d <- lmer(alcuse ~ coa * age_14 + peer * age_14 + (age_14 | id), data = data, REML = FALSE)
+
+# Model summary.
+summary(model_d)
+```
+
+7. Calculate the proportional reduction in variance in the initial status and
+   the rate of change due to including the `peer` predictor in the model.
+
+
+```{r size="footnotesize"}
+# Variances for both models.
+print(VarCorr(model_c), comp = "Variance")
+print(VarCorr(model_d), comp = "Variance")
+
+# Initial status.
+(0.48758 - 0.24090) / 0.48758
+
+# Rate of change.
+(0.15060 - 0.13912) / 0.15060
+```
+
+Including the variable `peer`, we see that the reduction in variance is about
+$50%$ for the intercepts, and about $8%$ for the slopes.
+
+8. Estimate another model (i.e., `model_e`), in which the non-significant effect
+   of variable `coa` on the rate of change is removed.
+
+Now, we are removing the interaction between `coa` and the rate of change (i.e.,
+the slope).
+
+```{r size="footnotesize"}
+# Model syntax.
+model_e <- lmer(alcuse ~ coa + peer * age_14 + (age_14 | id), data = data, REML = FALSE)
+
+# Model summary.
+summary(model_e)
+```
+
+9. Estimate another model (i.e., `model_f`) based on `model_e`, but with
+   intercepts that describe a child of non-alcoholic parents with an average
+   value of `peer` (i.e., use the centered variable `cpeer`).
+
+To do this, replace the `peer` variable with a centered version of the same
+variable (i.e., `cpeer` in our data set).
+
+```{r size="footnotesize"}
+# Model syntax.
+model_f <- lmer(alcuse ~ coa + cpeer * age_14 + (age_14 | id), data = data, REML = FALSE)
+
+# Model summary.
+summary(model_f)
+```
+
+10. Perform a *Likelihood-Ratio Test* (LRT) in which you simultaneously compare
+    `model_c`, `model_d`, and `model_e`. What do you conclude?
+
+```{r size="footnotesize"}
+# Perform the LRT.
+anova(model_c, model_d, model_e)
+```
+
+We see that `model_c` with only `coa` (i.e., so the constrained model in which
+the effect of `peer` in initial status and rate of change is set to $0$) does
+not fit equally well as the unconstrained model with both `coa` and `peer` (i.e.
+*LRT* test is significant). So, we prefer the more elaborate `model_d`. However,
+`model_e`, with nonsignificant effect of `coa` on the rate of change removed
+(i.e., constrained, simpler model), fits equally well as the more elaborate
+`model_d`. So, we prefer the constrained model `model_e` because that model does
+not fit worse than the model with the nonsignificant effect of `coa` included.
+
+\newpage
+
+# References

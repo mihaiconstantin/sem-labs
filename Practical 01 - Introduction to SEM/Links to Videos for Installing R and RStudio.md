@@ -1,0 +1,2 @@
+- How to install R and RStudio: https://www.youtube.com/watch?v=fh2pWgIZ9ps
+- Introduction to R using RStudio: https://www.youtube.com/watch?v=YfrASz7XjBc (until minute 33:20)

@@ -1,0 +1,533 @@
+---
+title: Structural Equation Modeling
+author: P.12 - Growth Curve Analysis
+date: 01.12.2021
+output:
+    pdf_document:
+        highlight: zenburn
+citation_package: biblatex
+bibliography: /Users/mihai/OneDrive/Library/Literature/Library.bib
+link-citations: yes
+csl: /Users/mihai/OneDrive/Library/Literature/Zotero/styles/apa.csl
+header-includes:
+  - \usepackage{leading}
+  - \usepackage{subcaption}
+  - \usepackage{csquotes}
+  - \usepackage{bm}
+  - \usepackage{amsmath}
+  - \usepackage{amssymb}
+  - \usepackage{hyperref}
+  - \leading{16pt}
+  - \newcommand{\mat}[1]{\bm{#1}}
+  - \renewcommand{\vec}[1]{\bm{#1}}
+  - \hypersetup{colorlinks, linkcolor={red!50!black}, citecolor={blue!50!black}, urlcolor={blue!80!black}}
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Output width.
+options(width = 100)
+
+# Reduce code chunk and output size.
+# See: https://stackoverflow.com/a/46526740/5252007.
+def.chunk.hook  <- knitr::knit_hooks$get("chunk")
+knitr::knit_hooks$set(chunk = function(x, options) {
+    x <- def.chunk.hook(x, options)
+    ifelse(options$size != "normalsize", paste0("\n \\", options$size, "\n\n", x, "\n\n \\normalsize"), x)
+})
+
+# Store the path.
+path <- "/Users/mihai/OneDrive/School/Teaching/Structural Equation Modeling - ReMa - Tilburg/2021/Lecture 12 - Growth Curve Analysis/Practical"
+
+# Set the path.
+setwd(path)
+
+# Load the data.
+data <- read.table("./data/health.dat")
+
+# Load libraries.
+library(lavaan)
+library(semPlot)
+```
+
+---
+
+# Lab Description
+
+In this assignment you are going to learn how to estimate a *Latent Growth
+Curve* (LGC) model in `R` using the `lavaan`. In the previous lab you learn how
+you can use hierarchical models (i.e., multi-level models for nested data). In
+this lab, we are are still going to work with nested data (i.e., observations
+nested under participants), but this time we are going to approach the problem
+from the perspective of *Structural Equation Models* (SEM) For this practical
+you will need the following packages: `lavaan` and `semPlot`. You can install
+and load these packages using the following code:
+
+```{r size="footnotesize", eval=FALSE}
+# Install packages.
+install.packages(c("lavaan", "semPlot"))
+
+# Load the packages.
+library(lavaan)
+library(semPlot)
+```
+
+## Exercise 1
+
+In this exercise, you are going to estimate a LGC model similar as the one
+depicted in *Figure 1*, but with six waves instead of four. Specifically, you
+are going to investigate changes in body weight over $12$ years (i.e., six waves
+of data separated by two years each) using the health and aging data set
+`health.dat` with $N = 5335$. Body weight was operationalized as the *Body Mass
+Index* (BMI), which is a ratio of weight to square of height (i.e., $\text{kg} /
+\text{m}^2$). The data set `health.dat` is available on Canvas in the module
+corresponding to this lab. You can use the code below to load the data and set
+the variables names.
+
+![Example of a LGT model reproduced from @newsomLongitudinalStructuralEquation2015 [p. 174].](./assets/ex_1_figure_1.png){width=80%}
+
+Set the working directory to the location where your data file has been
+downloaded and load the data.
+
+```{r size="footnotesize", eval=FALSE}
+# For example.
+setwd("/Users/mihai/Downloads")
+
+# Load data.
+data <- read.table("health.dat")
+
+# Inspect the data.
+View(data)
+```
+
+Set the variable names.
+
+```{r size="footnotesize"}
+# Variable names.
+variable_names_ex_1 = c(
+    "age", "srh1", "srh2", "srh3", "srh4", "srh5", "srh6", "bmi1",
+    "bmi2", "bmi3", "bmi4", "bmi5", "bmi6", "cesdna1", "cesdpa1", "cesdso1",
+    "cesdna2", "cesdpa2", "cesdso2", "cesdna3", "cesdpa3", "cesdso3",
+    "cesdna4", "cesdpa4", "cesdso4", "cesdna5", "cesdpa5", "cesdso5",
+    "cesdna6", "cesdpa6", "cesdso6", "diab1", "diab2", "diab3 ", "diab4", "diab5", "diab6"
+)
+
+# Set the names.
+names(data) <- variable_names_ex_1
+```
+
+List the variables.
+
+```{r size="footnotesize", eval=FALSE}
+# List variables.
+str(data)
+```
+
+Specify which fit measures we are interested in:
+
+```{r size='scriptsize'}
+# Fit indices to print.
+fit_indices <- c("chisq", "df", "pvalue", "cfi", "tli", "rmsea", "rmsea.pvalue", "srmr")
+```
+
+a. Estimate a *LGC* model in which you set each intercept factor loading equal
+   to $1$ and the slope factor loadings equal to $0$, $1$, $2$, $3$, $4$, and
+   $5$. Do not include correlated measurement residuals in this model. Evaluate
+   the fit of this model, and interpret the mean of the latent intercept and
+   mean of the latent slope.
+
+*It is important to note that instead of functions `sem` and `cfa`, this time we
+use the function **`growth`** for fitting the models.*
+
+```{r size="footnotesize", dev="pdf", fig.width=7, fig.height=7, out.width="300px", fig.align="center"}
+# Model syntax.
+model_ex_1_a <- "
+    # Latent intercept variable.
+    int =~ 1 * bmi1 + 1 * bmi2 + 1 * bmi3 + 1 * bmi4 + 1 * bmi5 + 1 * bmi6
+
+    # Latent slope variable.
+    slp =~ 0 * bmi1 + 1 * bmi2 + 2 * bmi3 + 3 * bmi4 + 4 * bmi5 + 5 * bmi6
+
+    # Latent variances and covariances.
+    int ~~ int
+    slp ~~ slp
+    int ~~ slp
+"
+
+# Fit model.
+model_ex_1_a_fit <- growth(model_ex_1_a, data = data)
+
+# Visualize the model.
+semPaths(model_ex_1_a_fit, what = "paths", whatLabels = "std")
+
+# Model summary.
+summary(model_ex_1_a_fit, standardized = TRUE, rsquare = TRUE)
+
+# Fit measures.
+fitMeasures(model_ex_1_a_fit, fit.measures = fit_indices)
+```
+
+b. Re-estimate the model from point *(a)*, but now add auto-correlations among
+   adjacent time points of the measurement residuals (e.g., $\varepsilon_1$ with
+   $\varepsilon_2$, $\varepsilon_2$ with $\varepsilon_3$, and so on). Evaluate
+   the fit of this model and test its fit against the more restricted model
+   estimated at point *(a)*.
+
+We can add the adjacent correlated residuals as follows:
+
+```{r size="footnotesize", dev="pdf", fig.width=7, fig.height=7, out.width="300px", fig.align="center"}
+# Model syntax.
+model_ex_1_b <- "
+    # Latent intercept variable.
+    int =~ 1 * bmi1 + 1 * bmi2 + 1 * bmi3 + 1 * bmi4 + 1 * bmi5 + 1 * bmi6
+
+    # Latent slope variable.
+    slp =~ 0 * bmi1 + 1 * bmi2 + 2 * bmi3 + 3 * bmi4 + 4 * bmi5 + 5 * bmi6
+
+    # Latent variances and covariances.
+    int ~~ int
+    slp ~~ slp
+    int ~~ slp
+
+    # Adjacent correlated residuals.
+    bmi1 ~~ bmi2
+    bmi2 ~~ bmi3
+    bmi3 ~~ bmi4
+    bmi4 ~~ bmi5
+    bmi5 ~~ bmi6
+"
+
+# Fit model.
+model_ex_1_b_fit <- growth(model_ex_1_b, data = data)
+
+# Visualize the model.
+semPaths(model_ex_1_b_fit, what = "paths", whatLabels = "std")
+
+# Model summary.
+summary(model_ex_1_b_fit, standardized = TRUE, rsquare = TRUE)
+
+# Fit measures.
+fitMeasures(model_ex_1_b_fit, fit.measures = fit_indices)
+```
+
+To compare the fit of `model_ex_1_b` to `model_ex_1_a` we can take a look at the
+fit measures and also perform a *Likelihood Ratio Test* (LRT).
+
+```{r size="footnotesize"}
+# Put all fit measures in a data frame or convenience.
+fit_measures_ex_1 <- data.frame(
+    model_ex_1_a = fitMeasures(model_ex_1_a_fit, fit.measures = fit_indices),
+    model_ex_1_b = fitMeasures(model_ex_1_b_fit, fit.measures = fit_indices)
+)
+
+# Print all fit measures rounded to four decimals.
+round(fit_measures_ex_1, 4)
+
+# Perform the LRT.
+anova(model_ex_1_a_fit, model_ex_1_b_fit)
+```
+
+c. In the model estimated at point *(b)*, inspect the estimate for the
+   covariance between the latent intercept and the latent slope. Provide a
+   substantive interpretation for this value.
+
+We can use the function `parTable` to list all parameters.
+
+```{r size="footnotesize"}
+# List parameters.
+lavaan::parTable(model_ex_1_b_fit)
+```
+
+In our case, the parameter of interest is located at row $15$.
+
+```{r size="footnotesize"}
+lavaan::parTable(model_ex_1_b_fit)[15, ]
+```
+
+We obtained a covariance between the latent intercept and slope variables of
+$.15$, with a $SE = 0.042$.
+
+d. Estimate a model that assumes homogeneity of variance of the measurement
+   residuals. In this model, remove the correlated measurement residuals so you
+   can test this model against the unconstrained model that was estimated at
+   point *(a)*. What can you conclude from the comparison of both models, and
+   from the model that included the auto-correlations between error terms?
+
+To assume homogeneity of variance for the measurement residuals, we need to
+constrain the residuals to be equal across measurement occasions.
+
+```{r size="footnotesize", dev="pdf", fig.width=7, fig.height=7, out.width="300px", fig.align="center"}
+# Model syntax.
+model_ex_1_d <- "
+    # Latent intercept variable.
+    int =~ 1 * bmi1 + 1 * bmi2 + 1 * bmi3 + 1 * bmi4 + 1 * bmi5 + 1 * bmi6
+
+    # Latent slope variable.
+    slp =~ 0 * bmi1 + 1 * bmi2 + 2 * bmi3 + 3 * bmi4 + 4 * bmi5 + 5 * bmi6
+
+    # Latent variances and covariances.
+    int ~~ int
+    slp ~~ slp
+    int ~~ slp
+
+    # Constrained residuals.
+    bmi1 ~~ a * bmi1
+    bmi2 ~~ a * bmi2
+    bmi3 ~~ a * bmi3
+    bmi4 ~~ a * bmi4
+    bmi5 ~~ a * bmi5
+    bmi6 ~~ a * bmi6
+"
+
+# Fit model.
+model_ex_1_d_fit <- growth(model_ex_1_d, data = data)
+
+# Visualize the model.
+semPaths(model_ex_1_d_fit, what = "paths", whatLabels = "std")
+
+# Model summary.
+summary(model_ex_1_d_fit, standardized = TRUE, rsquare = TRUE)
+
+# Fit measures.
+fitMeasures(model_ex_1_d_fit, fit.measures = fit_indices)
+```
+
+To compare the fit of `model_ex_1_d` to `model_ex_1_a` we can take a look at the
+fit measures and also perform a *Likelihood Ratio Test* (LRT).
+
+```{r size="footnotesize"}
+# Put all fit measures in a data frame or convenience.
+fit_measures_ex_1 <- cbind(
+    fit_measures_ex_1,
+    model_ex_1_d = fitMeasures(model_ex_1_d_fit, fit.measures = fit_indices)
+)
+
+# Print all fit measures rounded to four decimals.
+round(fit_measures_ex_1, 4)
+
+# Perform the LRT.
+anova(model_ex_1_a_fit, model_ex_1_d_fit)
+```
+
+For a nuanced explanation, see *Figure 2* that shows the explanation provided by
+@newsomLongitudinalStructuralEquation2015 [p. 183] under section *Example 7.1.
+Growth Curve Model with Observed Variables*.
+
+\begin{figure}[ht]
+    \fbox{\includegraphics[width=0.5\linewidth]{./assets/ex_1_figure_2a.pdf}}
+    \fbox{\includegraphics[width=0.5\linewidth]{./assets/ex_1_figure_2b.pdf}}
+    \caption{Explanation for \textit{Exercise 1}.}
+    \label{fig2}
+\end{figure}
+
+\newpage
+
+## Exercise 2
+
+In this exercise you are going to keep using the `health.dat` and extend the
+model from *Exercise 1* with a time-invariant covariate, namely the age of the
+participants.
+
+a. Compute a new variable `age_c` which is the grand mean centered age of
+   the participants.
+
+    - *Tip.* You can obtain the sample mean using `mean(data$age)`.
+
+To create `age_c`, we need to subtract the grand mean from the `age` variable.
+
+```{r size="footnotesize"}
+# Create the centered age variable.
+data$age_c <- data$age - mean(data$age)
+```
+
+b. Estimate the conditional *LGC* model of *BMI* by regressing the latent
+   intercept and the latent slope on `age_c`.
+
+```{r size="footnotesize", dev="pdf", fig.width=7, fig.height=7, out.width="300px", fig.align="center"}
+# Model syntax.
+model_ex_2_b <- "
+    # Latent intercept variable.
+    int =~ 1 * bmi1 + 1 * bmi2 + 1 * bmi3 + 1 * bmi4 + 1 * bmi5 + 1 * bmi6
+
+    # Latent slope variable.
+    slp =~ 0 * bmi1 + 1 * bmi2 + 2 * bmi3 + 3 * bmi4 + 4 * bmi5 + 5 * bmi6
+
+    # Latent variances and covariances.
+    int ~~ int
+    slp ~~ slp
+    int ~~ slp
+
+    # Regression equations.
+    int + slp ~ age_c
+"
+
+# Fit model.
+model_ex_2_b_fit <- growth(model_ex_2_b, data = data)
+
+# Visualize the model.
+semPaths(model_ex_2_b_fit, what = "paths", whatLabels = "std")
+
+# Model summary.
+summary(model_ex_2_b_fit, standardized = TRUE, rsquare = TRUE)
+
+# Fit measures.
+fitMeasures(model_ex_2_b_fit, fit.measures = fit_indices)
+```
+
+c. Evaluate the fit of this model, and the effect of `age_c` on the latent
+   intercept and latent slope.
+
+```{r size="footnotesize"}
+# Fit measures.
+fitMeasures(model_ex_2_b_fit, fit.measures = fit_indices)
+```
+
+d. Compute a new binary age variable called `age_b` for implementing the *MIMIC*
+   approach discussed during *Lecture 8*, using the following `R` code:
+
+First we compute the binary variable.
+
+```{r size="footnotesize"}
+data$age_b <- ifelse(data$age <= 65, 0, 1)
+```
+
+e. Estimate the *MIMIC* model by regressing the intercept and the slope factors
+   on the binary age variable. Interpret the effects of the binary age variable.
+
+Now we can implement the *MIMIC* approach. Note that the only thing that changes
+is that in our regression equations we now use the binary variable `age_b`
+instead of the mean-centered variable `age_c`.
+
+```{r size="footnotesize", dev="pdf", fig.width=7, fig.height=7, out.width="300px", fig.align="center"}
+# Model syntax.
+model_ex_2_e <- "
+    # Latent intercept variable.
+    int =~ 1 * bmi1 + 1 * bmi2 + 1 * bmi3 + 1 * bmi4 + 1 * bmi5 + 1 * bmi6
+
+    # Latent slope variable.
+    slp =~ 0 * bmi1 + 1 * bmi2 + 2 * bmi3 + 3 * bmi4 + 4 * bmi5 + 5 * bmi6
+
+    # Latent variances and covariances.
+    int ~~ int
+    slp ~~ slp
+    int ~~ slp
+
+    # Regression equations.
+    int + slp ~ age_b
+"
+
+# Fit model.
+model_ex_2_e_fit <- growth(model_ex_2_e, data = data)
+
+# Visualize the model.
+semPaths(model_ex_2_e_fit, what = "paths", whatLabels = "std")
+
+# Model summary.
+summary(model_ex_2_e_fit, standardized = TRUE, rsquare = TRUE)
+
+# Fit measures.
+fitMeasures(model_ex_2_e_fit, fit.measures = fit_indices)
+```
+
+f. Test the same hypothesis of age differences in trajectories, using the
+   multi-group approach and comparing those under $65$ to those aged $65$ and
+   older.
+
+For this model, the intercept and slope factor variances were constrained to be
+equal in both age groups. The constraints are placed to obtain a more stable
+estimate of the variances in $> 65$ group (i.e., which had a small sample size),
+and to provide more comparable results to the *MIMIC* modeling approach. The
+variance constraints did not significantly degrade the fit of the model, so
+these appeared to be empirically justifiable assumptions.
+
+First, we fit a model (i.e., `model_ex_1_a`) where we constrain the latent
+variable variances to be equal across the age groups. We can use the `group` and
+`group.equal` arguments in `lavaan` to do so. Note that we do not yet constrain
+the means of the slope latent variable yet.
+
+```{r size="footnotesize", dev="pdf", fig.width=7, fig.height=7, out.width="300px", fig.align="center"}
+model_ex_2_f <- "
+    # Latent intercept variable.
+    int =~ 1 * bmi1 + 1 * bmi2 + 1 * bmi3 + 1 * bmi4 + 1 * bmi5 + 1 * bmi6
+
+    # Latent slope variable.
+    slp =~ 0 * bmi1 + 1 * bmi2 + 2 * bmi3 + 3 * bmi4 + 4 * bmi5 + 5 * bmi6
+
+    # Latent variances and covariances.
+    int ~~ int
+    slp ~~ slp
+    int ~~ slp
+"
+
+# Fit model.
+model_ex_2_f_fit <- growth(model_ex_2_f, data = data, group = "age_b", group.equal = "lv.variances")
+
+# Visualize the model.
+semPaths(model_ex_2_f_fit, what = "paths", whatLabels = "std")
+
+# Model summary.
+summary(model_ex_2_f_fit, standardized = TRUE, rsquare = TRUE)
+
+# Fit measures.
+fitMeasures(model_ex_2_f_fit, fit.measures = fit_indices)
+```
+
+Now, on top of the variance constraints, we also constrain the intercept of the
+slope latent variable to be equal across groups. Note that since we use the
+`group` argument in `lavaan`, this time we have to specify the constraints in
+the form of a vector (i.e., `c(a, a)`, which means that both the $< 65$ and
+$> 65$ age groups will be applied the same label `a` for the latent slope
+variable intercept).
+
+```{r size="footnotesize", dev="pdf", fig.width=7, fig.height=7, out.width="300px", fig.align="center"}
+model_ex_2_f_slp_con <- "
+    # Latent intercept variable.
+    int =~ 1 * bmi1 + 1 * bmi2 + 1 * bmi3 + 1 * bmi4 + 1 * bmi5 + 1 * bmi6
+
+    # Latent slope variable.
+    slp =~ 0 * bmi1 + 1 * bmi2 + 2 * bmi3 + 3 * bmi4 + 4 * bmi5 + 5 * bmi6
+
+    # Latent variances and covariances.
+    int ~~ int
+    slp ~~ slp
+    int ~~ slp
+
+    # Intercept constraint.
+    slp ~ c(a, a) * 1
+"
+
+# Fit model.
+model_ex_2_f_slp_con_fit <- growth(model_ex_2_f_slp_con, data = data, group = "age_b", group.equal = "lv.variances")
+
+# Visualize the model.
+semPaths(model_ex_2_f_slp_con_fit, what = "paths", whatLabels = "std")
+
+# Model summary.
+summary(model_ex_2_f_slp_con_fit, standardized = TRUE, rsquare = TRUE)
+
+# Fit measures.
+fitMeasures(model_ex_2_f_slp_con_fit, fit.measures = fit_indices)
+```
+
+We can now compare the fit of the two models (i.e., `model_ex_2_f` and
+`model_ex_2_f_slp_con`) and also perform a *LRT*.
+
+```{r size="footnotesize"}
+# Put all fit measures in a data frame or convenience.
+fit_measures_ex_2_f <- data.frame(
+    model_ex_2_f = fitMeasures(model_ex_2_f_fit, fit.measures = fit_indices),
+    model_ex_2_f_slp_con = fitMeasures(model_ex_2_f_slp_con_fit, fit.measures = fit_indices)
+)
+
+# Print all fit measures rounded to four decimals.
+round(fit_measures_ex_2_f, 4)
+
+# Perform the LRT.
+anova(model_ex_2_f_fit, model_ex_2_f_slp_con_fit)
+```
+
+\newpage
+
+# References

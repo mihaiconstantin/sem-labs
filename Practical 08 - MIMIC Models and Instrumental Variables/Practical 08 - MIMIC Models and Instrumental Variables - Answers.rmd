@@ -1,0 +1,267 @@
+---
+title: Structural Equation Modeling
+author: P.08 - MIMIC Models and Instrumental Variables
+date: 17.11.2021
+output:
+    pdf_document:
+        highlight: zenburn
+citation_package: biblatex
+bibliography: /Users/mihai/OneDrive/Library/Literature/Library.bib
+link-citations: yes
+csl: /Users/mihai/OneDrive/Library/Literature/Zotero/styles/apa.csl
+header-includes:
+  - \usepackage{leading}
+  - \usepackage{subcaption}
+  - \usepackage{csquotes}
+  - \usepackage{bm}
+  - \usepackage{amsmath}
+  - \usepackage{amssymb}
+  - \usepackage{hyperref}
+  - \leading{16pt}
+  - \newcommand{\mat}[1]{\bm{#1}}
+  - \renewcommand{\vec}[1]{\bm{#1}}
+  - \hypersetup{colorlinks, linkcolor={red!50!black}, citecolor={blue!50!black}, urlcolor={blue!80!black}}
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Output width.
+options(width = 100)
+
+# Reduce code chunk and output size.
+# See: https://stackoverflow.com/a/46526740/5252007.
+def.chunk.hook  <- knitr::knit_hooks$get("chunk")
+knitr::knit_hooks$set(chunk = function(x, options) {
+    x <- def.chunk.hook(x, options)
+    ifelse(options$size != "normalsize", paste0("\n \\", options$size, "\n\n", x, "\n\n \\normalsize"), x)
+})
+
+# Store the path.
+path <- "/Users/mihai/OneDrive/School/Teaching/Structural Equation Modeling - ReMa - Tilburg/2021/Lecture 08 - MIMIC Models and Instrumental Variables/Practical"
+
+# Set the path.
+setwd(path)
+
+# Load data for exercise two.
+data_ex_2 <- read.csv("./data/card.csv")
+
+# Load libraries.
+library(lavaan)
+library(semPlot)
+```
+
+---
+
+# Lab Description
+
+For this practical you will need the following packages: `lavaan` and `semPlot`.
+You can install and load these packages using the following code:
+
+```{r size="footnotesize", eval=FALSE}
+# Install packages.
+install.packages(c("lavaan", "semPlot", "mvtnorm", "GGally"))
+
+# Load the packages.
+library(lavaan)
+library(semPlot)
+```
+
+## Exercise 1
+
+Estimate the model in *Figure 1* in `lavaan` and examine if there is evidence of
+Differential Item Functioning (DIF) in the measurement instruments. To help you
+get started, you are provided with the code that contains the correlations and
+standard deviations corresponding to the model depicted in *Figure 1*.
+
+![Reproduction of Figure 7.5 from @brownConfirmatoryFactorAnalysis2014 [p. 275]](./assets/ex_1_figure_1.jpg){width=100%}
+
+Standard deviations and correlations.
+
+```{r size='scriptsize'}
+# Standard deviations.
+sd <- "2.26 2.73 2.11 2.32 2.61 2.44 0.50"
+
+# Correlations.
+cor <- "
+    1.000
+    0.705   1.000
+    0.724   0.646   1.000
+    0.213   0.195   0.190   1.000
+    0.149   0.142   0.128   0.521   1.000
+    0.155   0.162   0.135   0.557   0.479   1.000
+    -0.019  -0.024  -0.029  -0.110  -0.074  -0.291   1.000
+"
+
+# Get covariances.
+cov <- getCov(cor, sds = sd, names = c("S1", "S2", "S3", "A1", "A2", "A3", "sex"))
+```
+
+\newpage
+
+We start by specifying the syntax for the *MIMIC* model.
+
+```{r size="footnotesize", dev="pdf", fig.width=20, fig.height=9, out.width="450px", fig.align="center"}
+# Model syntax.
+model_ex_1 <- "
+    # Measurement part.
+    social  =~ S1 + S2 + S3
+    agoraph =~ A1 + A2 + A3
+
+    # Regression equations.
+    social ~ sex
+    agoraph ~ sex
+    A3 ~ sex
+
+    # Covariances.
+    social ~~ agoraph
+"
+
+# Fit the model.
+model_ex_1_fit <- cfa(model_ex_1, sample.cov = cov, sample.nobs = 730)
+
+# Visualize the model.
+semPaths(model_ex_1_fit, what = "paths", whatLabels = "est")
+
+# Model summary.
+summary(model_ex_1_fit, fit.measures = TRUE, standardized = TRUE, modindices = TRUE)
+```
+
+The *MIMIC* model provides a good fit to the data, with a $\chi^2(11) = 3.80$,
+$p\text{-value} = .98$, $RMSEA = 0.00$, and  $CFI = 1.00$.
+
+Regarding the evidence for DIF, the following paragraph from
+@brownConfirmatoryFactorAnalysis2014 [p. 280] is relevant:
+
+> Consistent with the researcher’s predictions, the results of the *MIMIC* model
+> show that the A3 indicator is not invariant for males and females (akin to
+> intercept non-invariance in multiple-groups CFA). This is reflected by the
+> significant direct effect of `sex` on the `A3` indicator ($z = 6.65$, $p <
+> .001$) that is not mediated by `agoraphobia`. In other words, when the latent
+> variable of `agoraphobia` is held constant, there is a significant direct
+> effect of `sex` on the `A3` indicator. Thus, at any given value of the factor,
+> women score significantly higher on the `A3` indicator than men (by $.985$
+> units, or nearly a full point on the $0$–$8$ scale). This is evidence of
+> *differential item functioning*; that is, the item behaves differently as an
+> indicator of `agoraphobia` in men and women.
+
+## Exercise 2
+
+Open the dataset `card.csv` available on Canvas in the folder corresponding to
+the current practical. This dataset contains several variables used by David
+Card (1995) to estimate the causal effect of education on wages using proximity
+to college as an instrumental variable. You can find more information about this
+dataset at [this link](https://eml.berkeley.edu/~card/papers/geo_var_schooling.pdf).
+
+Set the working directory to the location where your data file has been
+downloaded and load the data.
+
+```{r size="footnotesize", eval=FALSE}
+# For example.
+setwd("/Users/mihai/Downloads")
+
+# Load data.
+data_ex_2 <- read.csv("card.csv")
+
+# Inspect the data.
+View(data_ex_2)
+```
+
+a. Estimate a model in which you only regress `lwage` on `educ` (i.e., without
+   including an instrumental variable). What do you conclude from this
+   regression?
+
+```{r size="footnotesize", dev="pdf", fig.width=9, fig.height=3, out.width="450px", fig.align="center"}
+# Model syntax.
+model_ex_2_a <- "lwage ~ educ"
+
+# Fit the model.
+model_ex_2_a_fit <- sem(model_ex_2_a, data_ex_2)
+
+# Visualize the model.
+semPaths(model_ex_2_a_fit, what = "paths", whatLabels = "est")
+
+# Model summary.
+summary(model_ex_2_a_fit, standardized = TRUE, rsquare = TRUE)
+```
+
+b. Re-estimate the model at point *(a)*, but this time with the following
+   control variables added: `exper`, `expersq`, `black`, `south`, `fatheduc`,
+   and `motheduc`.
+
+```{r size="footnotesize", dev="pdf", fig.width=20, fig.height=9, out.width="450px", fig.align="center"}
+model_ex_2_b <- "
+    lwage ~ educ + exper + expersq + black + south + fatheduc + motheduc
+"
+
+# Fit the model.
+model_ex_2_b_fit <- sem(model_ex_2_b, data_ex_2)
+
+# Visualize the model.
+semPaths(model_ex_2_b_fit, what = "paths", whatLabels = "est")
+
+# Model summary.
+summary(model_ex_2_b_fit, standardized = TRUE, rsquare = TRUE)
+```
+
+The problem with treating the direct association between `educ` and `lwage` as a
+causal effect is that there are likely many omitted variables that affect both
+education and wages. We could control for those variables by measuring them and
+including them in the model (i.e., as we did at point *b*). But there is no way
+we can control for all possible confounding variables, especially because some
+variables are difficult to measure (e.g., ability). It is therefore likely that
+education is correlated with the error term in the regression (i.e., a form of
+endogeneity), and that our regression coefficient is, in turn, biased to an
+unknown degree. David Card proposed to solve this problem by introducing
+proximity to college as an instrumental variable. Specifically, `nearc4` was a
+dummy indicator variable for whether or not the person was raised in a local
+labor market that included a four-year college.
+
+c. Re-estimate the model at point *(b)* with the following additions:
+    - add `nearc4` as an instrumental variable for for `educ`, while
+      controlling for `fatheduc` and `motheduc`
+    - add a covariance between the error terms of `educ` and `lwage`
+
+Does this model provide evidence of endogeneity of educ? Why (not)?
+
+```{r size="footnotesize", dev="pdf", fig.width=20, fig.height=9, out.width="450px", fig.align="center"}
+model_ex_2_c <- "
+    lwage ~ educ + exper + expersq + black + south + fatheduc + motheduc
+    educ ~ nearc4 + fatheduc + motheduc
+    lwage ~~ educ
+"
+
+# Fit the model.
+model_ex_2_c_fit <- sem(model_ex_2_c, data_ex_2)
+
+# Model summary.
+summary(model_ex_2_c_fit, standardized = TRUE, rsquare = TRUE)
+```
+
+d. Evaluate whether `nearc4` is a weak or strong instrument for dealing with the
+   endogeneity of the variable `educ`. Specifically, consider the criteria that a
+   strong instrument must meet in order to adequately correct for endogeneity.
+
+```{r size="footnotesize", dev="pdf", fig.width=20, fig.height=9, out.width="450px", fig.align="center"}
+model_ex_2_d <- "
+    lwage ~ educ + exper + expersq + black + south + fatheduc + motheduc + nearc4
+    educ ~ nearc4 + fatheduc + motheduc
+"
+
+# Fit the model.
+model_ex_2_d_fit <- sem(model_ex_2_d, data_ex_2)
+
+# Visualize the model.
+semPaths(model_ex_2_d_fit, what = "paths", whatLabels = "est")
+
+# Model summary.
+summary(model_ex_2_d_fit, standardized = TRUE, rsquare = TRUE)
+```
+
+Overall, `nearc4` does not appear to be a particularly strong instrumental
+variable!
+
+\newpage
+
+# References

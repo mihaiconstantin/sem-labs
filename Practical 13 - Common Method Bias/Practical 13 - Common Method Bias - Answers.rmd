@@ -1,0 +1,338 @@
+---
+title: Structural Equation Modeling
+author: P.13 - Common Method Bias
+date: 06.12.2021
+output:
+    pdf_document:
+        highlight: zenburn
+citation_package: biblatex
+bibliography: /Users/mihai/OneDrive/Library/Literature/Library.bib
+link-citations: yes
+csl: /Users/mihai/OneDrive/Library/Literature/Zotero/styles/apa.csl
+header-includes:
+  - \usepackage{leading}
+  - \usepackage{subcaption}
+  - \usepackage{csquotes}
+  - \usepackage{bm}
+  - \usepackage{amsmath}
+  - \usepackage{amssymb}
+  - \usepackage{hyperref}
+  - \leading{16pt}
+  - \newcommand{\mat}[1]{\bm{#1}}
+  - \renewcommand{\vec}[1]{\bm{#1}}
+  - \hypersetup{colorlinks, linkcolor={red!50!black}, citecolor={blue!50!black}, urlcolor={blue!80!black}}
+  - \usepackage{longtable}
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Output width.
+options(width = 100)
+
+# Reduce code chunk and output size.
+# See: https://stackoverflow.com/a/46526740/5252007.
+def.chunk.hook <- knitr::knit_hooks$get("chunk")
+knitr::knit_hooks$set(chunk = function(x, options) {
+    x <- def.chunk.hook(x, options)
+    ifelse(options$size != "normalsize", paste0("\n \\", options$size, "\n\n", x, "\n\n \\normalsize"), x)
+})
+
+# Load libraries.
+library(lavaan)
+library(semPlot)
+library(haven)
+
+# Store the path.
+path <- "/Users/mihai/OneDrive/School/Teaching/Structural Equation Modeling - ReMa - Tilburg/2021/Lecture 13 - Common Method Bias/Practical"
+
+# Set the path.
+setwd(path)
+
+# Load the data.
+data <- read_spss("./data/data.sav")
+```
+
+---
+
+# Lab Description
+
+In this assignment you will learn how to fit *Structural Equation Models* (SEM)
+while accounting for *Common Method Bias*. For this practical you will need the
+following packages: `lavaan`, `semPlot`, and `haven`. You can install and load
+these packages using the following code:
+
+```{r size="footnotesize", eval=FALSE}
+# Install packages.
+install.packages(c("lavaan", "semPlot", "haven"))
+
+# Load the packages.
+library(lavaan)
+library(semPlot)
+library(haven)
+```
+
+Please note that the data for following assignment are kindly provided by [dr.
+Pieter de Rooij](https://pure.buas.nl/en/persons/pieter-de-rooij) from *Breda
+University of Applied Sciences*. We acquired permission to use the data in the
+course *Research Master: Structural Equation Modeling and Analysis of
+Longitudinal Data*. Should you want to use the data outside the scope of this
+course, please make sure to obtain written approval from dr. Pieter de Rooij (at
+rooy.h@buas.nl).
+
+## More about the data
+
+This dataset contains $27$ items that seek to measure $9$ dimensions (i.e.,
+constructs) of visitors’ experiences when they attend a performance in the
+performing arts sector (e.g., drama, dance, musical, stand up comedy, opera,
+classical music). Each construct is indicated by $3$ items as shown in *Table
+1*. Scales were rated on $5$ point *Likert* scales (i.e. from $1 = \text{totally
+disagree}$ to $5 = \text{totally agree}$).
+
+\newpage
+
+\begin{longtable}{llp{11cm}}
+    \caption{Latent constructs and manifest variables in \texttt{data.sav}.} \\
+    \label{tab:1} \\
+
+    \hline \multicolumn{1}{l}{\textbf{Dimensions}} & \multicolumn{1}{l}{\textbf{Variable}} & \multicolumn{1}{l}{\textbf{Item text}} \\ \hline
+    \endfirsthead
+
+    \multicolumn{3}{r}%
+    {{\bfseries \tablename\ \thetable{} -- continued}} \\
+    \hline \multicolumn{1}{l}{\textbf{Dimensions}} & \multicolumn{1}{l}{\textbf{Variable}} & \multicolumn{1}{l}{\textbf{Item text}} \\ \hline
+    \endhead
+
+    \hline \multicolumn{3}{r}{{Continued on next page}}
+    \endfoot
+
+    \hline
+    \endlastfoot
+
+    Artistic value          & \texttt{artval1}   & The concert/ show had artistic value. \\
+                            & \texttt{artval2}   & The concert/ show was a form of art. \\
+                            & \texttt{artval3}   & The concert/ show was of a high artistic level. \\
+    \hline
+    Beauty                  & \texttt{beauty1}   & The concert/ how was beautiful. \\
+                            & \texttt{beauty2}   & I enjoyed the concert/ show. \\
+                            & \texttt{beauty3}   & The concert/ how was a beautiful experience. \\
+    \hline
+    Cultural relaxation     & \texttt{relax1}    & Through my visit to the concert/ show I had a nice evening out. \\
+                            & \texttt{relax2}    & Through my visit to the concert/ show I had the feeling I was away from it all. \\
+                            & \texttt{relax3}    & Through my visit to the concert/ show I have been able to relax. \\
+    \hline
+    Cultural stimulation    & \texttt{stim1}     & Through my visit to the concert/ show I got food for thought. \\
+                            & \texttt{stim2}     & Through my visit to the concert/ show I felt intellectually stimulated. \\
+                            & \texttt{stim3}     & Through my visit to the concert/ show I have been challenged to think about certain things. \\
+    \hline
+    Cultural transmission   & \texttt{trans1}    & Through my visit to the concert/ show I transmitted my cultural interests to important others (children, grandchildren, family, friends.) \\
+                            & \texttt{trans2}    & Through my visit to the concert/ show I have shared my cultural interests with important others (children, grandchildren, family, friends.) \\
+                            & \texttt{trans3}    & Through my visit to the concert/ show I have brought people that are important to me into contact with this form of art. \\
+    \hline
+    Social attraction       & \texttt{attr1}     & During my visit to the concert/ show I was with people that like the same things as I do. \\
+                            & \texttt{attr2}     & During my visit to the concert/ show I had the feeling I was with like-minded people. \\
+                            & \texttt{attr3}     & During my visit to the concert/ show I was with people that have similar interests as me. \\
+    \hline
+    Social bonding          & \texttt{bond1}     & My visit to the concert/ show was a nice opportunity to be together with family and friends. \\
+                            & \texttt{bond2}     & Through my visit to the concert/ show I had a nice evening out with family or friends. \\
+                            & \texttt{bond3}     & Through my visit to the concert/ show I have been able to strengthen the bonds with family or friends. \\
+    \hline
+    Social distinction      & \texttt{dist1}     & My visit to the concert/ show is a good topic for conversation at drinks or other social activities. \\
+                            & \texttt{dist2}     & I like to tell other people how I experienced the concert/ show. \\
+                            & \texttt{dist3}     & People in my social environment appreciate a visit to this concert/ show. \\
+    \hline
+    Social duty             & \texttt{duty1}     & Through my visit to the concert/ show I spent a pleasant time with colleagues or business relations. \\
+                            & \texttt{duty2}     & Through my visit to the concert/ show I met interesting people from my professional network. \\
+                            & \texttt{duty3}     & Through my visit to the concert/ show I strengthened my professional network. \\
+\end{longtable}
+
+## Questions
+
+Start by loading the *SPSS* dataset `data.sav` into `R` using the `haven`
+package.
+
+- *Hint.* Check out the `read_spss` function from the `R` package `haven`.
+
+Set the working directory to the location where your data file has been
+downloaded and load the data.
+
+```{r size="footnotesize", eval=FALSE}
+# For example.
+setwd("/Users/mihai/Downloads")
+
+# Load data.
+data <- read_spss("data.sav")
+
+# Inspect the data.
+View(data)
+```
+
+List the variables.
+
+```{r size="footnotesize", eval=FALSE}
+# List variables.
+str(data)
+```
+
+Specify which fit measures we are interested in:
+
+```{r size='scriptsize'}
+# Fit indices to print.
+fit_indices <- c("chisq", "df", "pvalue", "cfi", "tli", "rmsea", "rmsea.pvalue", "srmr")
+```
+
+1. Estimate a *CFA* model for the $9$ constructs. Evaluate the fit of this
+   model.
+
+```{r size="footnotesize", dev="pdf", fig.width=7, fig.height=7, out.width="300px", fig.align="center"}
+# Model syntax.
+model_q_1 <- "
+    # Measurement part.
+    artval  =~ exp_artval1 + exp_artval2 + exp_artval3
+    attr    =~ exp_attr1   + exp_attr2   + exp_attr3
+    beaty   =~ exp_beauty1 + exp_beauty2 + exp_beauty3
+    bond    =~ exp_bond1   + exp_bond2   + exp_bond3
+    dist    =~ exp_dist1   + exp_dist2   + exp_dist3
+    duty    =~ exp_duty1   + exp_duty2   + exp_duty3
+    esc     =~ exp_esc1    + exp_esc2    + exp_esc3
+    stim    =~ exp_stim1   + exp_stim2   + exp_stim3
+    trans   =~ exp_trans1  + exp_trans2  + exp_trans3
+"
+
+# Fit model.
+model_q_1_fit <- cfa(model_q_1, data = data)
+
+# Visualize the model.
+semPaths(
+    model_q_1_fit,
+    what = "path",
+    whatLabels = "omit",
+    sizeMan = 6.5,
+    sizeLat = 6,
+    style = "lisrel",
+    layout = "spring",
+    mar = c(1.5, 1.5, 1.5, 1.5)
+)
+
+# Model summary.
+summary(model_q_1_fit, standardized = TRUE)
+
+# Fit measures.
+fitMeasures(model_q_1_fit, fit.measures = fit_indices)
+```
+
+2. Estimate a *CFA* model for the $9$ constructs together with a *method factor*
+   to control for potential *common method bias*. Model the *common method
+   variance* with a single *latent method variable*. Implement equality
+   constraints on the loadings of the method factor and also implement the
+   necessary constraints for the associations between method and content
+   factors.
+
+```{r size="footnotesize", dev="pdf", fig.width=7, fig.height=7, out.width="300px", fig.align="center"}
+# Model syntax.
+model_q_2 <- "
+    # Measurement part.
+    artval  =~ exp_artval1 + exp_artval2 + exp_artval3
+    attr    =~ exp_attr1   + exp_attr2   + exp_attr3
+    beaty   =~ exp_beauty1 + exp_beauty2 + exp_beauty3
+    bond    =~ exp_bond1   + exp_bond2   + exp_bond3
+    dist    =~ exp_dist1   + exp_dist2   + exp_dist3
+    duty    =~ exp_duty1   + exp_duty2   + exp_duty3
+    esc     =~ exp_esc1    + exp_esc2    + exp_esc3
+    stim    =~ exp_stim1   + exp_stim2   + exp_stim3
+    trans   =~ exp_trans1  + exp_trans2  + exp_trans3
+
+    # Common method variance latent variable with constrained loadings.
+    cmv =~ NA * exp_artval1 +
+            a * exp_artval1 + a * exp_artval2 + a * exp_artval3 +
+            a * exp_attr1   + a * exp_attr2   + a * exp_attr3 +
+            a * exp_beauty1 + a * exp_beauty2 + a * exp_beauty3 +
+            a * exp_bond1   + a * exp_bond2   + a * exp_bond3 +
+            a * exp_dist1   + a * exp_dist2   + a * exp_dist3 +
+            a * exp_duty1   + a * exp_duty2   + a * exp_duty3 +
+            a * exp_esc1    + a * exp_esc2    + a * exp_esc3 +
+            a * exp_stim1   + a * exp_stim2   + a * exp_stim3 +
+            a * exp_trans1  + a * exp_trans2  + a * exp_trans3
+
+    # Fix variance of the `cmv` latent variable.
+    cmv ~~ 1 * cmv
+
+    # Fix covariances between the `cmv` and the other latent variables.
+    artval ~~ 0 * cmv
+    attr   ~~ 0 * cmv
+    beaty  ~~ 0 * cmv
+    bond   ~~ 0 * cmv
+    dist   ~~ 0 * cmv
+    duty   ~~ 0 * cmv
+    esc    ~~ 0 * cmv
+    stim   ~~ 0 * cmv
+    trans  ~~ 0 * cmv
+"
+
+# Fit model.
+model_q_2_fit <- cfa(model_q_2, data = data)
+
+# Visualize the model.
+semPaths(
+    model_q_2_fit,
+    what = "path",
+    whatLabels = "omit",
+    sizeMan = 6.5,
+    sizeLat = 6,
+    style = "lisrel",
+    layout = "spring",
+    mar = c(1.5, 1.5, 1.5, 1.5)
+)
+```
+
+```{r size="footnotesize", dev="pdf", fig.width=10, fig.height=6, out.width="450px", fig.align="center"}
+# Regular tree layout.
+semPaths(
+    model_q_2_fit,
+    what = "path",
+    whatLabels = "omit",
+    sizeMan = 3,
+    sizeLat = 6,
+    style = "lisrel",
+    mar = c(1.5, 1.5, 1.5, 1.5)
+)
+
+# Model summary.
+summary(model_q_2_fit, standardized = TRUE)
+
+# Fit measures.
+fitMeasures(model_q_2_fit, fit.measures = fit_indices)
+```
+
+3. Test both models against each other using the *Likelihood Ratio Test* (LRT).
+   What do you conclude?
+
+We can first compare the fit indices.
+
+```{r size="footnotesize"}
+# Put all fit measures together.
+fit_measures_all <- data.frame(
+    model_q_1 = fitMeasures(model_q_1_fit, fit.measures = fit_indices),
+    model_q_2 = fitMeasures(model_q_2_fit, fit.measures = fit_indices)
+)
+
+# Print the measures with four decimals.
+print(round(fit_measures_all, 4))
+```
+
+Now we can also perform a *LRT*.
+
+```{r size="footnotesize"}
+# Perform LRT.
+anova(model_q_2_fit, model_q_1_fit)
+```
+
+We see evidence that including a factor to account for common method bias
+improves the model fit. The model estimated at point *(1)* (i.e., `model_q_1`)
+does not fit equally well as the more complex model fit at point *(2)* (i.e., `model_q_2`).
+We prefer `model_q_2` with the method factor added.
+
+4. Do you see other possibilities to improve the fit of the model?
+
+*What do you think?*

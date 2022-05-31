@@ -1,0 +1,119 @@
+---
+title: Structural Equation Modeling
+author: P.11 - Multilevel Model for Change (Part 2)
+date: 29.11.2021
+output:
+    pdf_document:
+        highlight: zenburn
+citation_package: biblatex
+bibliography: /Users/mihai/OneDrive/Library/Literature/Library.bib
+link-citations: yes
+csl: /Users/mihai/OneDrive/Library/Literature/Zotero/styles/apa.csl
+header-includes:
+  - \usepackage{leading}
+  - \usepackage{subcaption}
+  - \usepackage{csquotes}
+  - \usepackage{bm}
+  - \usepackage{amsmath}
+  - \usepackage{amssymb}
+  - \usepackage{hyperref}
+  - \leading{16pt}
+  - \newcommand{\mat}[1]{\bm{#1}}
+  - \renewcommand{\vec}[1]{\bm{#1}}
+  - \hypersetup{colorlinks, linkcolor={red!50!black}, citecolor={blue!50!black}, urlcolor={blue!80!black}}
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Output width.
+options(width = 100)
+
+# Reduce code chunk and output size.
+# See: https://stackoverflow.com/a/46526740/5252007.
+def.chunk.hook  <- knitr::knit_hooks$get("chunk")
+knitr::knit_hooks$set(chunk = function(x, options) {
+    x <- def.chunk.hook(x, options)
+    ifelse(options$size != "normalsize", paste0("\n \\", options$size, "\n\n", x, "\n\n \\normalsize"), x)
+})
+
+# Store the path.
+path <- "/Users/mihai/OneDrive/School/Teaching/Structural Equation Modeling - ReMa - Tilburg/2021/Lecture 11 - Multilevel Model for Change (Part 2)/Practical"
+
+# Set the path.
+setwd(path)
+```
+
+---
+
+# Lab Description
+
+In this assignment you are going to estimate several multilevel models that
+reproduce the findings discussed in *lecture 11*. Compare your results with the
+findings reported in the lecture slides. Try to use the lecture slides as a
+guide through the `R` output.
+
+For this practical you will need the following packages: `lme4`, `ggplot2`, and
+`psych`. You can install and load these packages using the following
+code:
+
+```{r size="footnotesize", eval=FALSE}
+# Install packages.
+install.packages(c("lme4", "ggplot2", "psych"))
+
+# Load the packages.
+library(lme4)
+library(ggplot2)
+library(psych)
+```
+
+## Questions
+
+Start by loading the `alcohol.csv` data in `R`, then compute basic descriptive
+statistics. The data is available on Canvas in the module corresponding to the
+current lab session.
+
+1. Estimate the the *unconditional means model* (i.e., as `model_a`). In this
+   model, the variable `alcuse` (i.e., alcohol use) is the dependent variable,
+   which is only predicted by the intercept.
+
+    - *Tip*. Recall how interecepts are modeled in simple linear regression, and
+      how to allow for the intercepts to vary across individuals.
+
+2. Calculate the *interclass correlation coefficient* (ICC) from `model_a`.
+
+3. Estimate the *unconditional growth model* (i.e., as `model_b`). In this
+   model, allow for random variation in the `age_14` variable, which captures
+   the effect of time.
+
+    - *Note.* The variable `age_14` by subtracting $14$ from the variable `age`.
+      Therefore, variable `age_14` holds $0$ for age $14$, $1$ for age $15$, and
+      $2$ for age $16$.
+
+4. Estimate another model (i.e., `model_c`), where the variable `coa` predicts
+   both the initial status and the rate of change in variable `alcuse`.
+
+    - *Note.* The variable `coa` refers to whether the children belongs to a
+      family with an alcoholic parent, i.e., coded as $1$, and $0$ otherwise.
+
+5. Calculate the proportional reduction in variance in the initial status and
+   the rate of change due to including the `coa` predictor in the model.
+
+6. Estimate another (i.e., `model_d`) in which the variable `peer` is added to
+   `model_c` to explain the initial status and the rate of change in `alcuse`.
+
+    - *Note.* The variable `peer` is a measure of peer alcohol use.
+
+7. Calculate the proportional reduction in variance in the initial status and
+   the rate of change due to including the `peer` predictor in the model.
+
+8. Estimate another model (i.e., `model_e`), in which the non-significant effect
+   of varaible `coa` on the rate of change is removed.
+
+9. Estimate another model (i.e., `model_f`) based on `model_e`, but with
+   intercepts that describe a child of non-alcoholic parents with an average
+   value of `peer` (i.e., use the centered variable `cpeer`).
+
+10.	Perform a *Likelihood-Ratio Test* (LRT) in which you simultaneously compare
+    `model_c`, `model_d`, and `model_e`. What do you conclude?
