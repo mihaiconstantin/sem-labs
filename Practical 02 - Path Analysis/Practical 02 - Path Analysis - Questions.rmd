@@ -1,14 +1,14 @@
 ---
 title: Structural Equation Modeling
 author: P.02 - Path Analysis
-date: 27.10.2021
+date: "`r format(Sys.time(), '%B %d, %Y')`"
 output:
     pdf_document:
         highlight: zenburn
 citation_package: biblatex
-bibliography: /Users/mihai/OneDrive/Library/Literature/Library.bib
 link-citations: yes
-csl: /Users/mihai/OneDrive/Library/Literature/Zotero/styles/apa.csl
+bibliography: ../libs/literature.bib
+csl: ../libs/apa.csl
 header-includes:
   - \usepackage{leading}
   - \leading{16pt}
@@ -16,8 +16,6 @@ header-includes:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-
-setwd("/Users/mihai/OneDrive/School/Teaching/Structural Equation Modeling - ReMa - Tilburg/2021/Lecture 02 - Path Analysis/Practical")
 
 library(lavaan)
 library(semPlot)
@@ -214,4 +212,4 @@ summary(
 
 \newpage
 
-# References #
+# References
