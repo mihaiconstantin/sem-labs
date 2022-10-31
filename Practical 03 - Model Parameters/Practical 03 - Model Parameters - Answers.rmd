@@ -101,6 +101,10 @@ model_marker_fit <- cfa(model_marker, sample.cov = covariances, sample.nobs = 60
 summary(model_marker_fit, standardized = TRUE)
 ```
 
+*Note.* By default, the first indicator of each latent variable is used as the
+marker variable, i.e., `Depresion 1` in our case. However, we may select which
+indicator to use as the marker variable in the `lavaan` syntax.
+
 **Using (2) the standardized latent variable approach.**
 
 ```{r size="footnotesize"}
