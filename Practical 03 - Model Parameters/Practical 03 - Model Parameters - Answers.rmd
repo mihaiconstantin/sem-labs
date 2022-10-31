@@ -1,14 +1,14 @@
 ---
 title: Structural Equation Modeling
 author: P.03 - Model Parameters
-date: 01.11.2021
+date: "`r format(Sys.time(), '%B %d, %Y')`"
 output:
     pdf_document:
         highlight: zenburn
 citation_package: biblatex
-bibliography: /Users/mihai/OneDrive/Library/Literature/Library.bib
 link-citations: yes
-csl: /Users/mihai/OneDrive/Library/Literature/Zotero/styles/apa.csl
+bibliography: ../libs/literature.bib
+csl: ../libs/apa.csl
 header-includes:
   - \usepackage{leading}
   - \leading{16pt}
@@ -26,10 +26,7 @@ knitr::knit_hooks$set(chunk = function(x, options) {
 })
 
 # Store the path.
-path <- "/Users/mihai/OneDrive/School/Teaching/Structural Equation Modeling - ReMa - Tilburg/2021/Lecture 03 - Model Parameters/Practical"
-
-# Set the path.
-setwd(path)
+path <- getwd()
 
 # Load libraries.
 library(lavaan)
@@ -37,7 +34,7 @@ library(semPlot)
 library(corrplot)
 
 # Load data.
-data <- read.csv(paste0(path, "./data/ASC7INDM.csv"))
+data <- read.csv(paste0(path, "/data/ASC7INDM.csv"))
 ```
 
 ---
@@ -357,4 +354,4 @@ ensure that the model fit will not become worse.
 <!-- Page break -->
 \newpage
 
-# References #
+# References

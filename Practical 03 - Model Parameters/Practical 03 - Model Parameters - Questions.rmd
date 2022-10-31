@@ -1,14 +1,14 @@
 ---
 title: Structural Equation Modeling
 author: P.03 - Model Parameters
-date: 01.11.2021
+date: "`r format(Sys.time(), '%B %d, %Y')`"
 output:
     pdf_document:
         highlight: zenburn
 citation_package: biblatex
-bibliography: /Users/mihai/OneDrive/Library/Literature/Library.bib
 link-citations: yes
-csl: /Users/mihai/OneDrive/Library/Literature/Zotero/styles/apa.csl
+bibliography: ../libs/literature.bib
+csl: ../libs/apa.csl
 header-includes:
   - \usepackage{leading}
   - \leading{16pt}
@@ -16,10 +16,6 @@ header-includes:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-
-setwd("/Users/mihai/OneDrive/School/Teaching/Structural Equation Modeling - ReMa - Tilburg/2021/Lecture 03 - Model Parameters/Practical")
-
-library(lavaan)
 ```
 
 ---
@@ -72,4 +68,4 @@ c. Which possibilities do you have to possibly improve the fit of the model?
 <!-- Page break -->
 \newpage
 
-# References #
+# References
