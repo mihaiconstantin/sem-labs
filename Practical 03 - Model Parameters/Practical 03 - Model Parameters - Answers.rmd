@@ -25,16 +25,13 @@ knitr::knit_hooks$set(chunk = function(x, options) {
     ifelse(options$size != "normalsize", paste0("\n \\", options$size, "\n\n", x, "\n\n \\normalsize"), x)
 })
 
-# Store the path.
-path <- getwd()
-
 # Load libraries.
 library(lavaan)
 library(semPlot)
 library(corrplot)
 
 # Load data.
-data <- read.csv(paste0(path, "/data/ASC7INDM.csv"))
+data <- read.csv("./data/ASC7INDM.csv")
 ```
 
 ---
@@ -60,7 +57,7 @@ single factor model using three item facets from a depression questionnaire and
 a measure of social activity. The covariance matrix is given in Figure 1.
 
 <!-- Figure 1 !-->
-![Covariances for exercise 2 ($N = 6053$).](./assets/figure_1.png){width=80%}
+![Covariances for exercise 1 ($N = 6053$).](./assets/figure_1.png){width=80%}
 
 a. Enter the covariance matrix into `R`.
 
@@ -72,9 +69,9 @@ covariances <- c(0.77, 0.38, 0.65, 0.39, 0.39, 0.62, -0.25, -0.32, -0.27, 6.09)
 covariances <- lav_matrix_lower2full(covariances)
 
 # Add row and column names for the variables.
-# Dep1 stands for "Depresion 1".
-# Dep2 stands for "Depresion 2".
-# Dep3 stands for "Depresion 3".
+# Dep1 stands for "Depression 1".
+# Dep2 stands for "Depression 2".
+# Dep3 stands for "Depression 3".
 # SocAct stands for "Social Activity".
 rownames(covariances) <- colnames(covariances) <- c("Dep1", "Dep2", "Dep3", "SocAct")
 ```
@@ -102,7 +99,7 @@ summary(model_marker_fit, standardized = TRUE)
 ```
 
 *Note.* By default, the first indicator of each latent variable is used as the
-marker variable, i.e., `Depresion 1` in our case. However, we may select which
+marker variable, i.e., `Depression 1` in our case. However, we may select which
 indicator to use as the marker variable in the `lavaan` syntax.
 
 **Using (2) the standardized latent variable approach.**
@@ -179,6 +176,36 @@ of the loadings equals $\frac{1.744 + 1.753 + 1.787 - 1.284}{4} = 1$. The
 variance of `PsychoSocial` latent variable is $0.125$, and it represents the
 average of the amount of reliable variance that each indicator contributes to
 the definition of this latent construct.
+
+Similar to the *standardized latent variable* approach, we can use the effects
+coding approach by specifying the `effect.coding = TRUE` argument in `lavaan`
+instead of tweaking the model syntax as above. In this case, we use the model
+syntax stored in variable `model_marker`. The `lavaan` documentation for the
+argument `effect.coding` (i.e., see `?lavOptions`) gives us more information on
+how the effects coding is achieved, i.e.:
+
+> Can be logical or character string. If logical and TRUE, this implies
+> `effect.coding = c("loadings", "intercepts")`. If logical and `FALSE`, it is
+> set equal to the empty string. If `"loadings"` is included, equality
+> constraints are used so that the average of the factor loadings (per latent
+> variable) equals 1. Note that this should not be used together with `std.lv =
+> TRUE`. If `"intercepts"` is included, equality constraints are used so that
+> the sum of the intercepts (belonging to the indicators of a single latent
+> variable) equals zero. As a result, the latent mean will be freely estimated
+> and usually equal the average of the means of the involved indicators.
+
+```{r size="footnotesize"}
+# Model fit using effects coding via `effect.coding = TRUE`.
+model_effect_coding_fit_2 <- cfa(
+    model_marker,
+    sample.cov = covariances,
+    effect.coding = TRUE,
+    sample.nobs = 6053
+)
+
+# Model summary.
+summary(model_effect_coding_fit_2, standardized = TRUE)
+```
 
 c. Re-estimate the the first model (i.e., using the marker variable method), but
    now with the additional equality constraints between the loadings of
