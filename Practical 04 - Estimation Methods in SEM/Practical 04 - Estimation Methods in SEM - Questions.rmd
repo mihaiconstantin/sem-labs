@@ -1,14 +1,14 @@
 ---
 title: Structural Equation Modeling
 author: P.04 - Estimation Methods in SEM
-date: 03.11.2021
+date: "`r format(Sys.time(), '%B %d, %Y')`"
 output:
     pdf_document:
         highlight: zenburn
 citation_package: biblatex
-bibliography: /Users/mihai/OneDrive/Library/Literature/Library.bib
 link-citations: yes
-csl: /Users/mihai/OneDrive/Library/Literature/Zotero/styles/apa.csl
+bibliography: ../libs/literature.bib
+csl: ../libs/apa.csl
 header-includes:
   - \usepackage{leading}
   - \leading{16pt}
@@ -24,12 +24,6 @@ knitr::knit_hooks$set(chunk = function(x, options) {
     x <- def.chunk.hook(x, options)
     ifelse(options$size != "normalsize", paste0("\n \\", options$size, "\n\n", x, "\n\n \\normalsize"), x)
 })
-
-# Store the path.
-path <- "/Users/mihai/OneDrive/School/Teaching/Structural Equation Modeling - ReMa - Tilburg/2021/Lecture 04 - Estimation Methods in SEM/Practical"
-
-# Set the path.
-setwd(path)
 ```
 
 ---
@@ -92,16 +86,16 @@ b. Inspect the *skewness* and *kurtosis* of `BDI2_1` to `BDI2_20` using the
    `psych` package. Do you see indications of severe deviations from
    normality?
 
-c. Develop histograms (using the `ggplot2` packages) for the variables. What do
-   you learn from the inspection of these histograms?
+c. Develop histograms (using the `ggplot2` package) for the variables `BDI2_1`
+   and `BDI2_20`. What do you learn from the inspection of these histograms?
    - *Tip: When working with `R` you will often encounter parts that you just
      don't know how to implement, so don't be ashamed to Google things (e.g.,
      "how to create and histogram using `ggplot2` in `R`").*
 
-d. Estimate the model in Figure 2, but with the following addition constraints
+d. Estimate the model in Figure 2, but with the following additional constraints
    and model estimation specifications:
    1. Use `BDI2_3`, `BDI2_12`, and `BDI2_16` as marker variables.
-   2. Constraint the variances of `F1`, `F2`, and `F3` to be equal.
+   2. Constrain the variances of `F1`, `F2`, and `F3` to be equal.
    3. Fix the variance of `F4` to $1$.
    4. Define the observed variables as ordered categorical variables.
    5. Use as estimator the *Mean and Variance Adjusted Weighted Least Squares*
