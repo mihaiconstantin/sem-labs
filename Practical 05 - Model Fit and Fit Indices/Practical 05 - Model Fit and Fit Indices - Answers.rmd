@@ -346,9 +346,9 @@ indices only when such changes can be theoretically justified.}*
 
 ### Note on the $\chi^2$ difference value in the LRT.
 
-Some of you indicated that the $\chi^2$ difference value in the LRT computation
-is not the same as the actual difference between the standard $\chi^2$ reported
-by `lavaan` (e.g., during model `summary()`).
+In the past, some students have indicated that the $\chi^2$ difference value in
+the LRT computation is not the same as the actual difference between the
+standard $\chi^2$ reported by `lavaan` (e.g., during model `summary()`).
 
 This seems to be the case because we estimated the models using the *Satorra
 Bentler* method. In this scenario, `lavaan` will use the standard $\chi^2$
