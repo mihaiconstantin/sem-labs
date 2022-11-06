@@ -336,6 +336,14 @@ stop here, because:
   more difficult to justify from a substantive point of view
 - `CFI` and `TLI`, and `RMSEA` and `SRMR` indicate fairly good model fit
 
+**_Note._** *\textcolor{blue}{Remember that modification indices tell us how the
+model fit would change if we added new parameters to the model. Since our factor
+model is confirmatory by nature, misusing modification indices can be dangerous.
+More specifically, making changes based on the modification indices can run the
+risk of over-fitting the data and reducing the generalizability of the results.
+In practice, one should make changes to the model based on the modification
+indices only when such changes can be theoretically justified.}*
+
 ### Note on the $\chi^2$ difference value in the LRT.
 
 Some of you indicated that the $\chi^2$ difference value in the LRT computation
