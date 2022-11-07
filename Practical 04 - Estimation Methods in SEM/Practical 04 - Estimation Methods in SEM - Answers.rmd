@@ -356,7 +356,7 @@ estimator (i.e., based on the *Weighted Least Squares* approach) for categorical
 endogenous variables. Similarly, the `WLS` estimator also has *robust* variants,
 e.g., `WLSMV` (i.e., *Mean and Variance Adjusted Weighted Least Squares*), which
 uses the *Diagonally Weighted Least Squares* (i.e., `DWLS`) estimator, but "the
-full weight matrix to compute robust standard errors, and a mean- and
+full weight matrix to compute robust standard errors, and a mean and
 variance-adjusted test statistic" (i.e., see [this
 page](https://lavaan.ugent.be/tutorial/cat.html) in the `lavaan` documentation).
 
