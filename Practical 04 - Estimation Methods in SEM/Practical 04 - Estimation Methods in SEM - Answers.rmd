@@ -377,10 +377,9 @@ syntax) instead of our observed item. Therefore, the additional threshold
 parameters estimated for each variable specified as ordinal (e.g., `BDI2_1|t1`,
 `BDI2_1|t2`, and `BDI2_1|t3` for item `BDI2_1` in the example above) do not
 change the degrees of freedom of our model. Finally, not all endogenous
-variables need to be ordinal when the `WLSMV` estimator is used. We can have a
-mix of ordinal and continuous variables. However, for those that we indicated as
-ordinal via the `ordered` argument, `lavaan` will use the procedure presented
-above.
+variables need to be ordinal when using the `WLSMV` estimator. We can have a mix
+of ordinal and continuous variables. However, for those we indicated as ordinal
+via the ordered argument, `lavaan` will use the procedure presented above.
 
 \newpage
 
