@@ -12,6 +12,8 @@ csl: ../libs/apa.csl
 header-includes:
   - \usepackage{leading}
   - \leading{16pt}
+  - \usepackage{hyperref}
+  - \hypersetup{colorlinks, linkcolor={red!50!black}, citecolor={blue!50!black}, urlcolor={blue!80!black}}
 ---
 
 ```{r setup, include=FALSE}
@@ -245,6 +247,8 @@ d. Estimate the model in Figure 2, but with the following additional constraints
 *Note:* variables miss a `C` in the labeling, so `CBD` in picture is `BD` in the
 dataset.
 
+![Hypothesized second-order model of factorial structure for the Chinese version of the *Beck Depression Inventory II*.](./assets/figure_2.png){width=80%}
+
 First, we specify the model syntax.
 
 ```{r size="footnotesize"}
@@ -331,4 +335,53 @@ The hypothesis that model exactly reproduces data must be rejected.
 version. Check out this question for more information:
 https://stats.stackexchange.com/q/241896/116619.*
 
-![Hypothesized second-order model of factorial structure for the Chinese version of the *Beck Depression Inventory II*.](./assets/figure_2.png){width=80%}
+### Note on using the `WLSMV` estimator in `lavaan`
+
+As we discussed, and also saw in the [documentation of
+`lavaan`](https://lavaan.ugent.be/tutorial/est.html), when the data are
+continuous, the default estimator is the *Maximum Likelihood* approach (i.e.,
+`ML`). The `ML` estimator hinges on the assumption that our data are
+multivariate normally distributed. For cases when the assumption of normality is
+violated, `lavaan` provides *robust* variants of the `ML` estimator. One such
+estimator is, for instance, the `MLM` estimator that uses the *Satorra-Bentler*
+scaled test statistic [@satorraScaledDifferenceChisquare2001]. In essence, these
+*robust* estimators differ in how the standard errors for the parameter
+estimates (i.e., used to calculate the $p$-values) and the $\chi^2$ test
+statistic are determined---i.e., in such a way that they are robust to
+violations of the normality assumption.
+
+However, data are not always continuous. The `lavaan` package also provides
+specific estimators for such scenarios. For example, we can use the `WLS`
+estimator (i.e., based on the *Weighted Least Squares* approach) for categorical
+endogenous variables. Similarly, the `WLS` estimator also has *robust* variants,
+e.g., `WLSMV` (i.e., *Mean and Variance Adjusted Weighted Least Squares*), which
+uses the *Diagonally Weighted Least Squares* (i.e., `DWLS`) estimator, but "the
+full weight matrix to compute robust standard errors, and a mean- and
+variance-adjusted test statistic" (i.e., see [this
+page](https://lavaan.ugent.be/tutorial/cat.html) in the `lavaan` documentation).
+
+We can specify which variables should be treated as ordinal via the `ordered`
+argument in `lavaan`. Note that whenever we use the `ordered` argument, the
+estimator is automatically set to `WLSMV`. Variables specified as *ordinal* will
+be treated using a *threshold* structure. This boils down to assuming that a
+particular item has an underlying normal distribution (i.e., continuous
+Gaussian), but its distribution was discretized in our sample (i.e., split) at
+particular points (i.e., see Figure 3).
+
+![Graded threshold model with four answering anchors.](./assets/figure_3.png){width=80%}
+
+In this case, `lavaan` will use the threshold model to create a corresponding
+normally distributed latent variable for each ordinal item. This latent variable
+is then used in the measurement model (i.e., what we specified in the `lavaan`
+syntax) instead of our observed item. Therefore, the additional threshold
+parameters estimated for each variable specified as ordinal (e.g., `BDI2_1|t1`,
+`BDI2_1|t2`, and `BDI2_1|t3` for item `BDI2_1` in the example above) do not
+change the degrees of freedom of our model. Finally, not all endogenous
+variables need to be ordinal when the `WLSMV` estimator is used. We can have a
+mix of ordinal and continuous variables. However, for those that we indicated as
+ordinal via the `ordered` argument, `lavaan` will use the procedure presented
+above.
+
+\newpage
+
+## References
