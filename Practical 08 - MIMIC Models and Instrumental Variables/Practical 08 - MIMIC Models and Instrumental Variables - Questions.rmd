@@ -91,47 +91,6 @@ cor <- "
 cov <- getCov(cor, sds = sd, names = c("S1", "S2", "S3", "A1", "A2", "A3", "sex"))
 ```
 
-## Exercise 2
-
-Open the dataset `card.csv` available on Canvas in the folder corresponding to
-the current practical. This dataset contains several variables used by David
-Card (1995) to estimate the causal effect of education on wages using proximity
-to college as an instrumental variable. You can find more information about this
-dataset at [this
-link](https://eml.berkeley.edu/~card/papers/geo_var_schooling.pdf).
-
-a. Estimate a model in which you only regress `lwage` on `educ` (i.e., without
-   including an instrumental variable). What do you conclude from this
-   regression?
-
-b. Re-estimate the model at point *(a)*, but this time with the following
-   control variables added: `exper`, `expersq`, `black`, `south`, `fatheduc`,
-   and `motheduc`.
-
-The problem with treating the direct association between `educ` and `lwage` as a
-causal effect is that there are likely many omitted variables that affect both
-education and wages. We could control for those variables by measuring them and
-including them in the model (i.e., as we did at point *b*). But there is no way
-we can control for all possible confounding variables, especially because some
-variables are difficult to measure (e.g., ability). It is therefore likely that
-education is correlated with the error term in the regression (i.e., a form of
-endogeneity), and that our regression coefficient is, in turn, biased to an
-unknown degree. David Card proposed to solve this problem by introducing
-proximity to college as an instrumental variable. Specifically, `nearc4` was a
-dummy indicator variable for whether or not the person was raised in a local
-labor market that included a four-year college.
-
-c. Re-estimate the model at point *(b)* with the following additions:
-    - add `nearc4` as an instrumental variable for for `educ`, while
-      controlling for `fatheduc` and `motheduc`
-    - add a covariance between the error terms of `educ` and `lwage`
-
-Does this model provide evidence of endogeneity of educ? Why (not)?
-
-d. Evaluate whether `nearc4` is a weak or strong instrument for dealing with the
-   endogeneity of the variable `educ`. Specifically, consider the criteria that a
-   strong instrument must meet in order to adequately correct for endogeneity.
-
 \newpage
 
 # References
