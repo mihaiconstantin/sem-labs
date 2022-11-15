@@ -1,14 +1,15 @@
 ---
 title: Structural Equation Modeling
 author: P.09 - Statistical Modeling of Panel Data
-date: 22.11.2021
+date: "`r format(Sys.time(), '%B %d, %Y (%H:%M:%S)')`"
 output:
     pdf_document:
         highlight: zenburn
 citation_package: biblatex
-bibliography: /Users/mihai/OneDrive/Library/Literature/Library.bib
+bibliography: ../libs/literature.bib
+csl: ../libs/apa.csl
 link-citations: yes
-csl: /Users/mihai/OneDrive/Library/Literature/Zotero/styles/apa.csl
+colorlinks: true
 header-includes:
   - \usepackage{leading}
   - \usepackage{subcaption}
@@ -20,8 +21,6 @@ header-includes:
   - \leading{16pt}
   - \newcommand{\mat}[1]{\bm{#1}}
   - \renewcommand{\vec}[1]{\bm{#1}}
-  - \hypersetup{colorlinks, linkcolor={red!50!black}, citecolor={blue!50!black}, urlcolor={blue!80!black}}
-
 ---
 
 ```{r setup, include=FALSE}
@@ -38,11 +37,8 @@ knitr::knit_hooks$set(chunk = function(x, options) {
     ifelse(options$size != "normalsize", paste0("\n \\", options$size, "\n\n", x, "\n\n \\normalsize"), x)
 })
 
-# Store the path.
-path <- "/Users/mihai/OneDrive/School/Teaching/Structural Equation Modeling - ReMa - Tilburg/2021/Lecture 09 - Statistical Modeling of Panel Data/Practical"
-
-# Set the path.
-setwd(path)
+# Set the path only for interactive sessions.
+if (interactive()) setwd("./Practical 09 - Statistical Modeling of Panel Data")
 
 # Load the data.
 data_ex_1 <- read.table("./data/health.dat")
