@@ -1,6 +1,6 @@
 ---
 title: Structural Equation Modeling
-author: P.08 - MIMIC Models and Instrumental Variables
+author: P.08 - MIMIC Models
 date: "`r format(Sys.time(), '%B %d, %Y (%H:%M:%S)')`"
 output:
     pdf_document:
@@ -38,10 +38,7 @@ knitr::knit_hooks$set(chunk = function(x, options) {
 })
 
 # Set the path only for interactive sessions.
-if (interactive()) setwd("./Practical 08 - MIMIC Models and Instrumental Variables")
-
-# Load data for exercise two.
-data_ex_2 <- read.csv("./data/card.csv")
+if (interactive()) setwd("./Practical 08 - MIMIC Models")
 
 # Load libraries.
 library(lavaan)
@@ -93,54 +90,6 @@ cor <- "
 # Get covariances.
 cov <- getCov(cor, sds = sd, names = c("S1", "S2", "S3", "A1", "A2", "A3", "sex"))
 ```
-
-\newpage
-
-We start by specifying the syntax for the *MIMIC* model.
-
-```{r size="footnotesize", dev="pdf", fig.width=20, fig.height=9, out.width="450px", fig.align="center"}
-# Model syntax.
-model_ex_1 <- "
-    # Measurement part.
-    social  =~ S1 + S2 + S3
-    agoraph =~ A1 + A2 + A3
-
-    # Regression equations.
-    social ~ sex
-    agoraph ~ sex
-    A3 ~ sex
-
-    # Covariances.
-    social ~~ agoraph
-"
-
-# Fit the model.
-model_ex_1_fit <- cfa(model_ex_1, sample.cov = cov, sample.nobs = 730)
-
-# Visualize the model.
-semPaths(model_ex_1_fit, what = "paths", whatLabels = "est")
-
-# Model summary.
-summary(model_ex_1_fit, fit.measures = TRUE, standardized = TRUE, modindices = TRUE)
-```
-
-The *MIMIC* model provides a good fit to the data, with a $\chi^2(11) = 3.80$,
-$p\text{-value} = .98$, $RMSEA = 0.00$, and  $CFI = 1.00$.
-
-Regarding the evidence for DIF, the following paragraph from
-@brownConfirmatoryFactorAnalysis2014 [p. 280] is relevant:
-
-> Consistent with the researcher’s predictions, the results of the *MIMIC* model
-> show that the A3 indicator is not invariant for males and females (akin to
-> intercept non-invariance in multiple-groups CFA). This is reflected by the
-> significant direct effect of `sex` on the `A3` indicator ($z = 6.65$, $p <
-> .001$) that is not mediated by `agoraphobia`. In other words, when the latent
-> variable of `agoraphobia` is held constant, there is a significant direct
-> effect of `sex` on the `A3` indicator. Thus, at any given value of the factor,
-> women score significantly higher on the `A3` indicator than men (by $.985$
-> units, or nearly a full point on the $0$–$8$ scale). This is evidence of
-> *differential item functioning*; that is, the item behaves differently as an
-> indicator of `agoraphobia` in men and women.
 
 \newpage
 
