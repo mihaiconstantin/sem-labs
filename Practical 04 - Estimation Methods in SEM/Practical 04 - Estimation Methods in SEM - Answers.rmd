@@ -1,7 +1,7 @@
 ---
 title: Structural Equation Modeling
 author: P.04 - Estimation Methods in SEM
-date: "`r format(Sys.time(), '%B %d, %Y')`"
+date: "`r format(Sys.time(), '%B %d, %Y (%H:%M:%S)')`"
 output:
     pdf_document:
         highlight: zenburn
@@ -366,7 +366,7 @@ estimator is automatically set to `WLSMV`. Variables specified as *ordinal* will
 be treated using a *threshold* structure. This boils down to assuming that a
 particular item has an underlying normal distribution (i.e., continuous
 Gaussian), but its distribution was discretized in our sample (i.e., split) at
-particular points (i.e., see Figure 3).
+particular points (i.e., see Figure 3; thank you to the author of the figure).
 
 ![Graded threshold model with four answering anchors.](./assets/figure_3.png){width=80%}
 

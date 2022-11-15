@@ -1,7 +1,7 @@
 ---
 title: Structural Equation Modeling
 author: P.05 - Model Fit and Fit Indices
-date: "`r format(Sys.time(), '%B %d, %Y')`"
+date: "`r format(Sys.time(), '%B %d, %Y (%H:%M:%S)')`"
 output:
     pdf_document:
         highlight: zenburn
