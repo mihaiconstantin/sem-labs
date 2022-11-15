@@ -212,7 +212,7 @@ covariances <- list(
 # Combine the sample sizes into a single list.
 samples <- list(
     group_1 = 81,
-    group_1 = 200
+    group_2 = 200
 )
 ```
 

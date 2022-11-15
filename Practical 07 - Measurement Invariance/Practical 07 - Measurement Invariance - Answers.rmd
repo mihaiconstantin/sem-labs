@@ -212,7 +212,7 @@ covariances <- list(
 # Combine the sample sizes into a single list.
 samples <- list(
     group_1 = 81,
-    group_1 = 200
+    group_2 = 200
 )
 ```
 
@@ -286,10 +286,10 @@ fitMeasures(model_ex_1_group_2_fit, fit.measures = fit_indices)
 c. Investigate *configural* measurement invariance. Report and interpret the
    model fit.
 
-We already investigated configural measurement invariance at point *(b)* by
-manually fitting the model in each group and checking the global fit and whether
-the loadings are significant for both groups. This time, instead of manually
-fitting the model to each group, we will pass the list of mean vectors,
+In fact, *we already investigated configural measurement invariance* at point
+*(b)* by manually fitting the model in each group and checking the global fit
+and whether the loadings are significant for both groups. This time, instead of
+manually fitting the model to each group, we will pass the list of mean vectors,
 covariance matrices, and sample sizes to `lavaan`, which will automate the
 fitting for us.
 
@@ -378,7 +378,7 @@ e. Check if the the model fit at point *(d)* does not significantly worsen the
    fit compared to the model fit at point *(c)*.
 
 Since these models are nested, can use the `anova()` function in `R` to perform
-a LRT.
+a *LRT*.
 
 ```{r size='scriptsize'}
 # Perform LRT.
@@ -446,10 +446,12 @@ a LRT.
 anova(model_ex_1_strong_fit, model_ex_1_weak_fit)
 ```
 
-Our findings do not show support for strong measurement invariance. We obtain a
-$\chi^2$ difference value of $43.096$ with a $p\text{-value} < 0.001$. Also, the
-rules of thumbs regarding the decrease in *CFI* and increase in *RMSEA* show
-that we do not have support for strong measurement invariance.
+Our findings do not show support for strong measurement invariance (i.e., the
+*strong* measurement invariance model fits significantly worse compared to the
+*weak* measurement invariance model). We obtain a $\chi^2$ difference value of
+$43.096$ with a $p\text{-value} < 0.001$. Also, the rules of thumbs regarding
+the decrease in *CFI* and increase in *RMSEA* show that we do not have support
+for strong measurement invariance.
 
 h. Based on the findings above, should you continue with investigating strict
    measurement invariance or not?
@@ -484,25 +486,29 @@ To inspect the estimated intercepts, we use the `lavInspect` function in
 lavInspect(model_ex_1_strong_fit, "mu")[[1]] - group_1_means
 
 # Means discrepancies for group two.
-lavInspect(model_ex_1_strong_fit, "mu")[[2]] - group_1_means
+lavInspect(model_ex_1_strong_fit, "mu")[[2]] - group_2_means
 ```
 
 We can see that the misfit is most prominent for variable `sim`. We can now
 check the improvement in model fit if we freely estimate the intercepts for
 `sim` across groups (i.e., if we release them from the equality constraint). To
-do this, we use the `lavTestScore` function in `lavaan`. First, let us use the
-`parTable` function in `lavaan` to print the parameter table and learn the label
-`lavaan` automatically generated for the intercept of variable `sim`. Note that,
-behind the scenes, `lavaan` applies labels automatically to enforce the equality
-constraints requested via the argument `group.equal`.
+do this, we use the `lavTestScore` function in `lavaan`.
+
+First, let us use the `parTable` function in `lavaan` to print the parameter
+table and learn the label `lavaan` automatically generated for the intercept of
+variable `sim`. Note that, behind the scenes, `lavaan` applies labels
+automatically to enforce the equality constraints requested via the argument
+`group.equal`.
 
 ```{r size='scriptsize'}
 # Show the parameter table.
 parTable(model_ex_1_strong_fit)
 ```
 
-We see that for the first group, `lavaan` attached the label `.p21.` for the
-parameter `sim ~ 1` (i.e., the intercept).
+To find the parameter labels, we use check the `plabel` column for the specific
+relationship (i.e., `lavaan` equation syntax) that we are interested in. We see
+that for the first group, `lavaan` attached the label `.p21.` for the parameter
+`sim ~ 1` (i.e., the intercept).
 
 ```{r size='scriptsize'}
 parTable(model_ex_1_strong_fit)[21, ]
@@ -517,9 +523,9 @@ parTable(model_ex_1_strong_fit)[50, ]
 
 In order for `lavaan` to respect the equality constraints we requested, it set
 both of these labels to be equal, i.e., `.p21. == .p50.`. Therefore, when
-looking at the output of `lavTestScore` to understand which \enquote{release}
-results in the highest change in the $\chi^2$ difference, we expect `.p21. ==
-.p50.` to yield the highest change.
+looking at the output of `lavTestScore` to understand which \enquote{release of
+constraints} results in the highest change in the $\chi^2$ difference, we expect
+`.p21. == .p50.` to yield the highest change.
 
 ```{r size='scriptsize'}
 # Perform the score test for releasing constrained model parameters.
@@ -534,8 +540,8 @@ the largest $\chi^2$ difference (e.g., $29.459$). We go ahead and refit the
 strong measurement invariance model with the `sim ~ 1` freely estimated in both
 groups. Then, we check again using the function `lavTestScore` whether
 additional constraints can be freed. To do so, we use the `group.partial`
-argument. In this case, we are are actually investigating is called *strong
-partial measurement invariance*.
+argument. Note that, in this case, we are are actually investigating what is
+called *strong partial measurement invariance*.
 
 ```{r size='scriptsize'}
 # Fit the model.
@@ -576,8 +582,15 @@ fit_measures_all_ex_1 <- rbind(
     strong_partial = fitMeasures(model_ex_1_strong_partial_fit, fit_indices)
 )
 
-# Print the fit measures for all models with four decimals.
-print(round(fit_measures_all_ex_1, 4))
+# Round fit measures for all models to four decimals.
+print(round(fit_measures_all_ex_1, 3))
+```
+
+Or print the fit measures as an APA-style table.
+
+```{r size='scriptsize'}
+# Print pretty table.
+knitr::kable(round(fit_measures_all_ex_1, 3), caption = "Fit measures for all models investigated.")
 ```
 
 j. What kind of comparisons can we make when we find support for strong
@@ -702,11 +715,18 @@ fit_measures_all_ex_1 <- rbind(
     strict = fitMeasures(model_ex_1_strict_fit, fit_indices)
 )
 
-# Print the fit measures for all models with four decimals.
-print(round(fit_measures_all_ex_1, 4))
+# Print the fit measures for all models with three decimals.
+print(round(fit_measures_all_ex_1, 3))
 ```
 
-We observe a $\chi^2 = 129.978$ with $DF = 57$ and a $p\text{-value} = 0.001$.
+Or, again, show the measures in an APA-style table.
+
+```{r size='scriptsize'}
+# Print pretty table.
+knitr::kable(round(fit_measures_all_ex_1, 3), caption = "Fit measures for all models investigated.")
+```
+
+We observe a $\chi^2 = 94.881$ with $DF = 57$ and a $p\text{-value} = 0.001$.
 The fit indices indicate some support for strict measurement invariance.
 
 Finally, we perform a *LRT* between the strict model and the partial strong
@@ -736,8 +756,8 @@ comparisons based on the raw scores of variables (e.g., sum scores of
 variables). The rationale behind this is that an observed score $X$ consists of
 a true score $T$ and and error score $E$ (i.e., $X = T + E$; [see this in the
 context of
-reliability](https://maconstantin.shinyapps.io/reliability-measurement-error/)).
-Therefore, with strict measurement invariance we insure that the error part
+reliability](https://mihaiconstantin.shinyapps.io/reliability-measurement-error/)).
+Therefore, with strict measurement invariance we ensure that the error part
 (i.e., $E$) is the same across groups, allowing us to validly compare sum scores
 or other measures derived based the raw variable realizations.
 
