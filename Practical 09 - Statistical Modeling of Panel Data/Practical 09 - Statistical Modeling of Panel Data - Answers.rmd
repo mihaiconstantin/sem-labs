@@ -247,7 +247,7 @@ c. Now estimate the quasi-simplex model. For identification purposes, set the
 Parameter estimates involving first and last variable do not take into account
 measurement error.
 
-```{r size="footnotesize", dev="pdf", fig.width=20, fig.height=9, out.width="450px", fig.align="center"}
+```{r size="footnotesize", dev="pdf", fig.width=20, fig.height=12, out.width="450px", fig.align="center"}
 # Model syntax.
 model_ex_1_quasi_simplex <- "
     # Measurement part.
@@ -295,7 +295,7 @@ An alternative parametrization, more closely related to what was discussed
 during the lecture, is to (1) constrain all residual variances to be equal across
 time, and also (2) constrain the auto-regressive coefficients to be equal.
 
-```{r size="footnotesize", dev="pdf", fig.width=20, fig.height=9, out.width="450px", fig.align="center"}
+```{r size="footnotesize", dev="pdf", fig.width=20, fig.height=12, out.width="450px", fig.align="center"}
 # Model syntax.
 model_ex_1_quasi_simplex_alt <- "
     # Measurement part.
@@ -324,6 +324,9 @@ model_ex_1_quasi_simplex_alt <- "
 
 # Fit model.
 model_ex_1_quasi_simplex_alt_fit <- sem(model_ex_1_quasi_simplex_alt, data = data_ex_1)
+
+# Visualize the model.
+semPaths(model_ex_1_quasi_simplex_alt_fit, what = "paths", whatLabels = "est")
 ```
 
 And we can indeed see that the new model `model_ex_1_quasi_simplex_alt` has a
@@ -331,11 +334,10 @@ similar fit to `model_ex_1_quasi_simplex`.
 
 ```{r size="footnotesize"}
 # Print the fit indices side-by-side.
-round(cbind(
+knitr::kable(round(cbind(
     model_ex_1_quasi_simplex = fitMeasures(model_ex_1_quasi_simplex_fit, fit.measures = fit_indices),
     model_ex_1_quasi_simplex_alt = fitMeasures(model_ex_1_quasi_simplex_alt_fit, fit.measures = fit_indices)
-    ), 4
-)
+), 4))
 ```
 
 d. Perform a Likelihood Ratio Test (LRT) of the perfect simplex model against the
