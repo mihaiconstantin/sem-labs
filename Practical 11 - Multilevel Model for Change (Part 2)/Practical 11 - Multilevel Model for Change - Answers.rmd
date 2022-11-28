@@ -310,7 +310,7 @@ independent observations. If we take a look at the first six rows in our data
 
 ```{r size="footnotesize", echo=FALSE}
 # Print the head of the data.
-head(data)
+knitr::kable(head(data, n = 9), digits = 2)
 ```
 
 we see that the first three observations belong to the first participant (i.e.,
@@ -488,6 +488,33 @@ parameters:
   much variance is unexplained, after we allowed for the intercepts to vary,
   i.e., $\sigma_{\varepsilon}^{2} = 0.5617$.
 
+Looking at the regression lines for each participants in the plot below, we can,
+indeed, see that there is variability in the intercepts (i.e., starting points).
+
+```{r echo = FALSE, size="footnotesize", dev="pdf", fig.width=7, fig.height=7, out.width="270px", fig.align="center"}
+# Create ggplot.
+ggplot(data, aes(x = age, y = alcuse, group = id)) +
+    geom_jitter(
+        width = 0.1
+    ) +
+    geom_smooth(
+        mapping = aes(x = as.numeric(age)),
+        method = lm,
+        formula = y ~ x,
+        se = FALSE
+    ) +
+    theme_bw() +
+    theme(
+        legend.position = "none"
+    ) +
+    labs(
+        title = "Alcohol Use vs. Age",
+        subtitle = "(for each individual)",
+        x = "Age",
+        y = "Alcohol Use"
+    )
+```
+
 We can extract the coefficients (i.e., in this case only the individual
 intercepts, or the person-specific means) estimated for each individual via the
 `coef` function in `R`.
@@ -499,7 +526,8 @@ coef(model_a)
 
 We can also compute the $R^2$ value using the `mitml` package, but make sure you
 first read the relevant papers to understand how exactly it is computed. Thanks
-to Stella for mentioning the package!
+to [Stella](https://www.linkedin.com/in/stella-maria-marceta/) for mentioning
+the package!
 
 ```{r size="footnotesize", eval=FALSE}
 # Install packages.
@@ -517,7 +545,7 @@ package`sjPlot`:
 
 ```{r size="footnotesize", eval=FALSE}
 # Install package.
-install.package("sjPlot")
+install.packages("sjPlot")
 
 # Load package.
 library(sjPlot)
@@ -544,7 +572,7 @@ We obtain the same if we use the function `icc` in the `R` package
 
 ```{r size="footnotesize", eval=FALSE}
 # Install package.
-install.package("performance")
+install.packages("performance")
 
 # Load package.
 library(performance)
@@ -647,6 +675,33 @@ Now, in the output for our model we have values for the following parameters:
     - `residual` (i.e., $\sigma_{\varepsilon}^{2}$) equal to $0.3373$, which
       represents the unexplained within-person variance
 
+Again, the $\zeta_{1i}$ (i.e., the variance in the rate of change in alcohol
+consumption) seems to reflect the differences we also eyeball in the plot below.
+
+```{r echo = FALSE, size="footnotesize", dev="pdf", fig.width=7, fig.height=7, out.width="270px", fig.align="center"}
+# Create ggplot.
+ggplot(data, aes(x = age, y = alcuse, group = id)) +
+    geom_jitter(
+        width = 0.1
+    ) +
+    geom_smooth(
+        mapping = aes(x = as.numeric(age)),
+        method = lm,
+        formula = y ~ x,
+        se = FALSE
+    ) +
+    theme_bw() +
+    theme(
+        legend.position = "none"
+    ) +
+    labs(
+        title = "Alcohol Use vs. Age",
+        subtitle = "(for each individual)",
+        x = "Age",
+        y = "Alcohol Use"
+    )
+```
+
 4. Estimate another model (i.e., `model_c`), where the variable `coa` predicts
    both the initial status and the rate of change in variable `alcuse`.
 
@@ -697,7 +752,6 @@ summary(model_d)
 
 7. Calculate the proportional reduction in variance in the initial status and
    the rate of change due to including the `peer` predictor in the model.
-
 
 ```{r size="footnotesize"}
 # Variances for both models.
