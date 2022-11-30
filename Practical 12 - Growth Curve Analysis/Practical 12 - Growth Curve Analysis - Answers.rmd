@@ -77,10 +77,10 @@ depicted in *Figure 1*, but with six waves instead of four. Specifically, you
 are going to investigate changes in body weight over $12$ years (i.e., six waves
 of data separated by two years each) using the health and aging data set
 `health.dat` with $N = 5335$. Body weight was operationalized as the *Body Mass
-Index* (BMI), which is a ratio of weight to square of height (i.e., $\text{kg} /
-\text{m}^2$). The data set `health.dat` is available on Canvas in the module
-corresponding to this lab. You can use the code below to load the data and set
-the variables names.
+Index* (BMI), which is a ratio of weight to square meter of height (i.e.,
+$\text{kg} / \text{m}^2$). The data set `health.dat` is available on Canvas in
+the module corresponding to this lab. You can use the code below to load the
+data and set the variables names.
 
 ![Example of a LGT model reproduced from @newsomLongitudinalStructuralEquation2015 [p. 174].](./assets/ex_1_figure_1.png){width=80%}
 
@@ -156,7 +156,7 @@ model_ex_1_a <- "
 model_ex_1_a_fit <- growth(model_ex_1_a, data = data)
 
 # Visualize the model.
-semPaths(model_ex_1_a_fit, what = "paths", whatLabels = "std")
+semPaths(model_ex_1_a_fit, what = "paths", whatLabels = "std", edge.label.position = 0.7)
 
 # Model summary.
 summary(model_ex_1_a_fit, standardized = TRUE, rsquare = TRUE)
@@ -164,6 +164,12 @@ summary(model_ex_1_a_fit, standardized = TRUE, rsquare = TRUE)
 # Fit measures.
 fitMeasures(model_ex_1_a_fit, fit.measures = fit_indices)
 ```
+
+Note that when we use `rsquare = TRUE` the `lavaan` documentation indicates the
+following:
+
+> If `rsquare = TRUE`, the $r^2$ values for the dependent variables in the model
+are printed.
 
 b. Re-estimate the model from point *(a)*, but now add auto-correlations among
    adjacent time points of the measurement residuals (e.g., $\varepsilon_1$ with
@@ -199,7 +205,7 @@ model_ex_1_b <- "
 model_ex_1_b_fit <- growth(model_ex_1_b, data = data)
 
 # Visualize the model.
-semPaths(model_ex_1_b_fit, what = "paths", whatLabels = "std")
+semPaths(model_ex_1_b_fit, what = "paths", whatLabels = "std", edge.label.position = 0.7)
 
 # Model summary.
 summary(model_ex_1_b_fit, standardized = TRUE, rsquare = TRUE)
@@ -281,7 +287,7 @@ model_ex_1_d <- "
 model_ex_1_d_fit <- growth(model_ex_1_d, data = data)
 
 # Visualize the model.
-semPaths(model_ex_1_d_fit, what = "paths", whatLabels = "std")
+semPaths(model_ex_1_d_fit, what = "paths", whatLabels = "std", edge.label.position = 0.7)
 
 # Model summary.
 summary(model_ex_1_d_fit, standardized = TRUE, rsquare = TRUE)
@@ -363,7 +369,7 @@ model_ex_2_b <- "
 model_ex_2_b_fit <- growth(model_ex_2_b, data = data)
 
 # Visualize the model.
-semPaths(model_ex_2_b_fit, what = "paths", whatLabels = "std")
+semPaths(model_ex_2_b_fit, what = "paths", whatLabels = "std", edge.label.position = 0.65)
 
 # Model summary.
 summary(model_ex_2_b_fit, standardized = TRUE, rsquare = TRUE)
@@ -418,7 +424,7 @@ model_ex_2_e <- "
 model_ex_2_e_fit <- growth(model_ex_2_e, data = data)
 
 # Visualize the model.
-semPaths(model_ex_2_e_fit, what = "paths", whatLabels = "std")
+semPaths(model_ex_2_e_fit, what = "paths", whatLabels = "std", edge.label.position = 0.65)
 
 # Model summary.
 summary(model_ex_2_e_fit, standardized = TRUE, rsquare = TRUE)
@@ -461,7 +467,7 @@ model_ex_2_f <- "
 model_ex_2_f_fit <- growth(model_ex_2_f, data = data, group = "age_b", group.equal = "lv.variances")
 
 # Visualize the model.
-semPaths(model_ex_2_f_fit, what = "paths", whatLabels = "std")
+semPaths(model_ex_2_f_fit, what = "paths", whatLabels = "std", edge.label.position = 0.7)
 
 # Model summary.
 summary(model_ex_2_f_fit, standardized = TRUE, rsquare = TRUE)
@@ -495,10 +501,15 @@ model_ex_2_f_slp_con <- "
 "
 
 # Fit model.
-model_ex_2_f_slp_con_fit <- growth(model_ex_2_f_slp_con, data = data, group = "age_b", group.equal = "lv.variances")
+model_ex_2_f_slp_con_fit <- growth(
+    model = model_ex_2_f_slp_con,
+    data = data,
+    group = "age_b",
+    group.equal = "lv.variances"
+)
 
 # Visualize the model.
-semPaths(model_ex_2_f_slp_con_fit, what = "paths", whatLabels = "std")
+semPaths(model_ex_2_f_slp_con_fit, what = "paths", whatLabels = "std", edge.label.position = 0.7)
 
 # Model summary.
 summary(model_ex_2_f_slp_con_fit, standardized = TRUE, rsquare = TRUE)
